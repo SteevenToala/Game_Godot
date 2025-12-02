@@ -1,0 +1,55 @@
+# Godot-specific
+.import/
+export.cfg
+export_presets.cfg
+*.godot/   # Godot 4.x project cache folders
+*.translation
+
+# Exported builds
+/bin/
+*.pck
+*.exe
+*.apk
+*.zip
+*.xcodeproj
+*.ipa
+*.dmg
+*.tar.gz
+*.aab
+*.html
+*.wasm
+*.js
+
+# Godot Mono (C#)
+.mono/
+data_*/
+mono_crash.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Godot Editor backups
+*.godot~*
+*.tres~*
+*.res~*
+
+# Optional: VSCode or other editor configs
+.vscode/
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Node/npm stuff (if using tools for CSS)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Optional: Godot build system cache
+.cache/
+
+# Ignore user-specific Godot editor settings
+.editor_settings-*.cfg

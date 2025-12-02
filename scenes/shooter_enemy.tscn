@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3 uid="uid://d2r6mukd5a231"]
+
+[ext_resource type="Script" uid="uid://bne8ifmgdhchq" path="res://scripts/entities/ShooterEnemy.cs" id="1_kf3pt"]
+[ext_resource type="Texture2D" uid="uid://crb5glsnoyo31" path="res://textures/ufoRed.png" id="2_mmbl8"]
+[ext_resource type="PackedScene" uid="uid://c1l5av2w8bdpi" path="res://scenes/enemy_projectile.tscn" id="2_projectile"]
+[ext_resource type="Script" uid="uid://b62nkck1cai04" path="res://scripts/components/Health.cs" id="3_u66n6"]
+[ext_resource type="Script" uid="uid://cp8d53uwuo0l8" path="res://scripts/components/Movement.cs" id="4_4l6l4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_heyd6"]
+
+[node name="ShooterEnemy" type="Area2D"]
+script = ExtResource("1_kf3pt")
+ProjectileScene = ExtResource("2_projectile")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_heyd6")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_mmbl8")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_u66n6")
+
+[node name="Movement" type="Node" parent="."]
+script = ExtResource("4_4l6l4")
+
+[node name="ShootTimer" type="Timer" parent="."]
+wait_time = 6.0
+autostart = true
+
+[node name="Muzzle" type="Node2D" parent="."]
+position = Vector2(-2, 37)
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
+position = Vector2(0, -44)
+scale = Vector2(1, 0.4)

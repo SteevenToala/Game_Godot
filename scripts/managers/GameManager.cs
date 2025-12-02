@@ -1,0 +1,428 @@
+using Godot;
+
+public partial class GameManager : Node2D, IInitializable
+{
+	private Node2D _player;
+	private Node2D _playerSpawnPosition;
+	private Node2D _laserContainer;
+	private Node2D _projectileContainer; // NUEVO: Contenedor para proyectiles enemigos
+	private ParallaxBackground _parallaxBackground;
+	private ScoreManager _scoreManager;
+	private SpawnManager _spawnManager;
+	private LevelManager _levelManager;
+	private UserManager _userManager; // NUEVO: Sistema de usuarios
+	private Hud _hud;
+	private GameOverScreen _gameOverScreen;
+	private AudioService _audioService;
+	private bool _gameActive = false; // NUEVO: Control de estado del juego
+	
+	public override void _Ready()
+	{
+		Initialize();
+	}
+	
+	public void Initialize()
+	{
+		InitializeNodes();
+		InitializeUserManager();
+		InitializeManagers();
+		SetupPlayer();
+		
+		// NUEVO: Ocultar elementos del juego hasta que haya login
+		HideGameElements();
+		
+		// CAMBIO: No iniciar automáticamente, esperar login
+		// Solo mostrar la pantalla de login
+		if (_userManager != null)
+		{
+			_userManager.ShowLoginScreen();
+		}
+	}
+	
+	public override void _Process(double delta)
+	{
+		HandleInput();
+		
+		// Solo procesar el background si el juego está activo
+		if (_gameActive)
+		{
+			AdvanceBackground((float)delta);
+		}
+	}
+	
+	private void InitializeNodes()
+	{
+		_playerSpawnPosition = GetNode<Node2D>("PlayerSpawnPos");
+		_laserContainer = GetNode<Node2D>("LaserContainer");
+		
+		// NUEVO: Contenedor para proyectiles enemigos
+		_projectileContainer = GetNodeOrNull<Node2D>("ProjectileContainer");
+		if (_projectileContainer == null)
+		{
+			_projectileContainer = new Node2D();
+			_projectileContainer.Name = "ProjectileContainer";
+			AddChild(_projectileContainer);
+		}
+		
+		// Añadir al grupo para que los enemigos puedan encontrarlo
+		_projectileContainer.AddToGroup("projectile_container");
+		
+		_parallaxBackground = GetNode<ParallaxBackground>("ParallaxBackground");
+		_player = GetNode<Node2D>("Player");
+		_hud = GetNode<Hud>("UILayer/HUD");
+		_gameOverScreen = GetNode<GameOverScreen>("UILayer/GameOverScreen");
+		
+		// Crear AudioService como singleton
+		_audioService = GetNode<AudioService>("SFX");
+		
+		// Añadir GameManager al grupo para que los enemigos puedan encontrarlo
+		AddToGroup("game_manager");
+	}
+	
+	private void InitializeManagers()
+	{
+		_scoreManager = GetNode<ScoreManager>("ScoreManager");
+		_spawnManager = GetNode<SpawnManager>("SpawnManager");
+		_levelManager = GetNodeOrNull<LevelManager>("LevelManager");
+		
+		// Crear LevelManager dinámicamente si no existe
+		if (_levelManager == null)
+		{
+			_levelManager = new LevelManager();
+			_levelManager.Name = "LevelManager";
+			AddChild(_levelManager);
+		}
+		
+		// ✅ CONECTAR TODOS LOS EVENTOS DEL SCOREMANAGER AL HUD
+		if (_scoreManager != null)
+		{
+			_scoreManager.ScoreChanged += _hud.SetScore;
+			_scoreManager.HighScoreChanged += _hud.SetHighScore;
+			_scoreManager.ScoreChanged += OnScoreChanged;
+		}
+		
+		// Conectar eventos del SpawnManager
+		if (_spawnManager != null)
+		{
+			_spawnManager.EnemySpawned += OnEnemySpawned;
+		}
+		
+		// Conexiones del LevelManager
+		if (_levelManager != null)
+		{
+			_levelManager.LevelChanged += OnLevelChanged;
+			_levelManager.DifficultyUpdated += OnDifficultyUpdated;
+		}
+		
+		// ✅ FORZAR ACTUALIZACIÓN INICIAL DEL HUD CON VALORES ACTUALES
+		if (_scoreManager != null && _hud != null)
+		{
+			_hud.SetScore(_scoreManager.CurrentScore);
+			_hud.SetHighScore(_scoreManager.HighScore);
+		}
+		
+		if (_levelManager != null && _hud != null)
+		{
+			_hud.SetLevel(_levelManager.CurrentLevel);
+			_hud.SetNextLevelProgress(0, _levelManager.ScoreForNextLevel);
+		}
+	}
+	
+	private void SetupPlayer()
+	{
+		if (_player != null && _playerSpawnPosition != null)
+		{
+			_player.GlobalPosition = _playerSpawnPosition.GlobalPosition;
+			
+			if (_player is Player player)
+			{
+				player.LaserShot += OnPlayerLaserShot;
+				player.Killed += OnPlayerKilled;
+			}
+		}
+	}
+	
+	private async void LoadGameAsync()
+	{
+		await ToSignal(GetTree().CreateTimer(Constants.GameLoadTimeout), 
+			SceneTreeTimer.SignalName.Timeout);
+	}
+	
+	private void HandleInput()
+	{
+		if (Input.IsActionJustPressed("quit"))
+		{
+			GetTree().Quit();
+		}
+		else if (Input.IsActionJustPressed("reset"))
+		{
+			ResetGame();
+		}
+	}
+	
+	private void ResetGame()
+	{
+		// Limpiar proyectiles enemigos
+		if (_projectileContainer != null)
+		{
+			foreach (Node child in _projectileContainer.GetChildren())
+			{
+				child.QueueFree();
+			}
+		}
+		
+		// Reiniciar nivel cuando se reinicia el juego
+		_levelManager?.ResetLevel();
+		_spawnManager?.ResetDifficulty();
+		AudioService.Instance?.ResumeBackgroundMusic();
+		GetTree().ReloadCurrentScene();
+	}
+	
+	private void AdvanceBackground(float delta)
+	{
+		if (_parallaxBackground != null)
+		{
+			var newOffset = _parallaxBackground.ScrollOffset.Y <= 960 
+				? _parallaxBackground.ScrollOffset.Y + delta * Constants.ScrollSpeed 
+				: 0f;
+			_parallaxBackground.ScrollOffset = new Vector2(
+				_parallaxBackground.ScrollOffset.X,
+				newOffset
+			);
+		}
+	}
+	
+	private void OnEnemySpawned(Enemy enemy)
+	{
+		if (enemy != null)
+		{
+			enemy.Killed += OnEnemyKilled;
+			
+			// NUEVO: Conectar eventos de proyectiles si es un ShooterEnemy
+			if (enemy is ShooterEnemy shooterEnemy)
+			{
+				shooterEnemy.ProjectileFired += OnEnemyProjectileFired;
+			}
+		}
+	}
+	
+	// NUEVO: Método para manejar proyectiles enemigos
+	private void OnEnemyProjectileFired(PackedScene projectileScene, Vector2 position, float speed, int damage)
+	{
+		if (projectileScene?.Instantiate() is EnemyProjectile projectile && _projectileContainer != null)
+		{
+			projectile.GlobalPosition = position;
+			projectile.Initialize(speed, damage);
+			_projectileContainer.AddChild(projectile);
+		}
+	}
+	
+	private void OnEnemyKilled(Enemy enemy)
+	{
+		if (enemy != null && _scoreManager != null)
+		{
+			_scoreManager.AddScore(enemy.Value);
+			AudioService.Instance?.PlayExplosion();
+		}
+	}
+	
+	private void OnPlayerLaserShot(PackedScene laserScene, Vector2 location)
+	{
+		if (laserScene?.Instantiate() is Laser laser && _laserContainer != null)
+		{
+			laser.GlobalPosition = location;
+			_laserContainer.AddChild(laser);
+			AudioService.Instance?.PlayLaserShot();
+		}
+	}
+	
+	private async void OnPlayerKilled()
+	{
+		AudioService.Instance?.PlayExplosion();
+		
+		if (_gameOverScreen != null && _scoreManager != null)
+		{
+			_gameOverScreen.SetScore(_scoreManager.CurrentScore);
+			_gameOverScreen.SetHighScore(_scoreManager.HighScore);
+			
+			// Mostrar información del usuario en el game over
+			if (_userManager != null && _userManager.IsUserLoggedIn())
+			{
+				var user = _userManager.GetCurrentUser();
+				_gameOverScreen.SetUser(user.Username);
+			}
+		}
+		
+		await ToSignal(GetTree().CreateTimer(Constants.PlayerDeathTimeout), 
+			SceneTreeTimer.SignalName.Timeout);
+		
+		if (_gameOverScreen != null)
+		{
+			_gameOverScreen.Visible = true;
+		}
+	}
+	
+	// Métodos para el sistema de niveles
+	private void OnScoreChanged(uint newScore)
+	{
+		_levelManager?.CheckLevelUp(newScore);
+		
+		if (_levelManager != null)
+		{
+			_hud?.SetNextLevelProgress(newScore, _levelManager.ScoreForNextLevel);
+		}
+	}
+	
+	private void OnLevelChanged(uint newLevel)
+	{
+		GD.Print($"🎉 ¡LEVEL UP! Nivel {newLevel}");
+		_hud?.SetLevel(newLevel);
+		_hud?.ShowLevelUpMessage(newLevel);
+		AudioService.Instance?.PlayExplosion();
+	}
+	
+	private void OnDifficultyUpdated(float speedMultiplier, float spawnRateMultiplier)
+	{
+		GD.Print($"🔧 Dificultad actualizada - Velocidad: {speedMultiplier:F1}x, Spawn Rate: {spawnRateMultiplier:F1}x");
+	}
+
+	private void InitializeUserManager()
+	{
+		// Crear UserManager si no existe
+		_userManager = GetNodeOrNull<UserManager>("UserManager");
+		if (_userManager == null)
+		{
+			_userManager = new UserManager();
+			_userManager.Name = "UserManager";
+			AddChild(_userManager);
+		}
+
+		// Conectar eventos del UserManager usando las constantes generadas (pascal case)
+		if (_userManager != null)
+		{
+			var err1 = _userManager.Connect(UserManager.SignalName.UserLoggedIn, new Callable(this, nameof(OnUserLoggedIn)));
+			var err2 = _userManager.Connect(UserManager.SignalName.UserLoggedOut, new Callable(this, nameof(OnUserLoggedOut)));
+			GD.Print($"InitUserManager: connected login signal result={err1}, logout result={err2}");
+		}
+	}
+
+	private void StartGame()
+	{
+		_gameActive = true;
+		
+		// Ocultar pantalla de login
+		if (_userManager != null)
+		{
+			_userManager.HideLoginScreen();
+		}
+
+		// NUEVO: Mostrar elementos del juego
+		ShowGameElements();
+		
+		// Refrescar high score en el ScoreManager
+		if (_scoreManager != null)
+		{
+			_scoreManager.RefreshHighScore();
+		}
+		
+		// Actualizar HUD con información del usuario
+		if (_hud != null && _userManager != null && _userManager.IsUserLoggedIn())
+		{
+			var user = _userManager.GetCurrentUser();
+			_hud.SetUser(user.Username);
+			_hud.SetHighScore(user.HighScore);
+		}
+		
+		// Inicializar el juego
+		LoadGameAsync();
+		
+		GD.Print("🎮 Juego iniciado correctamente");
+	}
+
+	private void OnUserLoggedIn(string username)
+	{
+		GD.Print($"🎯 Usuario logueado en GameManager: {username}");
+		StartGame();
+	}
+
+	private void OnUserLoggedOut()
+	{
+		GD.Print("👋 Usuario deslogueado en GameManager");
+		_gameActive = false;
+		
+		// Ocultar elementos del juego
+		HideGameElements();
+		
+		// Mostrar pantalla de login
+		if (_userManager != null)
+		{
+			_userManager.ShowLoginScreen();
+		}
+	}
+
+	private void HideGameElements()
+	{
+		// Ocultar player
+		if (_player != null)
+		{
+			_player.Visible = false;
+		}
+
+		// Ocultar HUD
+		if (_hud != null)
+		{
+			_hud.Visible = false;
+		}
+
+		// Ocultar background (opcional)
+		if (_parallaxBackground != null)
+		{
+			_parallaxBackground.Visible = false;
+		}
+
+		// Pausar spawning accediendo al timer
+		if (_spawnManager != null)
+		{
+			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
+			if (spawnTimer != null)
+			{
+				spawnTimer.Paused = true;
+			}
+		}
+
+		GD.Print("🔒 Elementos del juego ocultos - Esperando login");
+	}
+
+	private void ShowGameElements()
+	{
+		// Mostrar player
+		if (_player != null)
+		{
+			_player.Visible = true;
+		}
+
+		// Mostrar HUD
+		if (_hud != null)
+		{
+			_hud.Visible = true;
+		}
+
+		// Mostrar background
+		if (_parallaxBackground != null)
+		{
+			_parallaxBackground.Visible = true;
+		}
+
+		// Reanudar spawning
+		if (_spawnManager != null)
+		{
+			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
+			if (spawnTimer != null)
+			{
+				spawnTimer.Paused = false;
+			}
+		}
+
+		GD.Print("🔓 Elementos del juego mostrados - Juego activo");
+	}
+}

@@ -1,0 +1,135 @@
+using Godot;
+
+public partial class Hud : Control, IInitializable
+{
+	private Label _scoreLabel;
+	private Label _highScoreLabel;
+	private Label _levelLabel;
+	private Label _nextLevelLabel;
+	private Label _userLabel; // NUEVO: Label para mostrar el usuario actual
+
+	public override void _Ready()
+	{
+		Initialize();
+		SetScore(0);
+		SetLevel(1);
+		SetNextLevelProgress(0, 2000);
+	}
+
+	public void Initialize()
+	{
+		_scoreLabel = GetNode<Label>("Score");
+		_highScoreLabel = GetNode<Label>("HighScore");
+
+		// Nuevos labels para nivel - usando GetNodeOrNull para evitar errores si no existen
+		_levelLabel = GetNodeOrNull<Label>("Level");
+		_nextLevelLabel = GetNodeOrNull<Label>("NextLevel");
+		_userLabel = GetNodeOrNull<Label>("User");
+
+		// Si no existen los nodos, los creamos dinámicamente
+		CreateMissingLevelLabels();
+		CreateMissingUserLabel();
+
+		// Aplicar colores
+		_scoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_highScoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_levelLabel?.AddThemeColorOverride("font_color", ColorPalette.Primary);
+		_nextLevelLabel?.AddThemeColorOverride("font_color", ColorPalette.Primary);
+		_userLabel?.AddThemeColorOverride("font_color", ColorPalette.Accent);
+	}
+
+	private void CreateMissingLevelLabels()
+	{
+		// Solo crear si no existen
+		if (_levelLabel == null)
+		{
+			_levelLabel = new Label();
+			_levelLabel.Name = "Level";
+			_levelLabel.Text = "Level: 1";
+			_levelLabel.Position = new Vector2(10, 60); // Posición debajo del score
+			AddChild(_levelLabel);
+		}
+
+		if (_nextLevelLabel == null)
+		{
+			_nextLevelLabel = new Label();
+			_nextLevelLabel.Name = "NextLevel";
+			_nextLevelLabel.Text = "Next: 2000";
+			_nextLevelLabel.Position = new Vector2(10, 90); 
+			AddChild(_nextLevelLabel);
+		}
+	}
+
+	private void CreateMissingUserLabel()
+	{
+		if (_userLabel == null)
+		{
+			_userLabel = new Label();
+			_userLabel.Name = "User";
+			_userLabel.Text = "Usuario: ---";
+			_userLabel.Position = new Vector2(10, 120); 
+			_userLabel.AddThemeColorOverride("font_color", ColorPalette.Accent);
+			AddChild(_userLabel);
+		}
+	}
+
+	public void SetScore(uint value)
+	{
+		if (_scoreLabel != null)
+		{
+			_scoreLabel.Text = $"Score: {value}";
+		}
+	}
+
+	public void SetHighScore(uint value)
+	{
+		if (_highScoreLabel != null)
+		{
+			_highScoreLabel.Text = $"Hi-Score: {value}";
+		}
+	}
+
+	public void SetLevel(uint level)
+	{
+		if (_levelLabel != null)
+		{
+			_levelLabel.Text = $"Level: {level}";
+		}
+	}
+
+	public void SetNextLevelProgress(uint currentScore, uint nextLevelScore)
+	{
+		if (_nextLevelLabel != null)
+		{
+			uint remaining = nextLevelScore - currentScore;
+			_nextLevelLabel.Text = $"Next: {remaining}";
+		}
+	}
+
+	public void SetUser(string username)
+	{
+		if (_userLabel != null)
+		{
+			_userLabel.Text = $"Usuario: {username}";
+		}
+	}
+
+	
+	public void ShowLevelUpMessage(uint newLevel)
+	{
+		
+		var levelUpLabel = new Label();
+		levelUpLabel.Text = $"LEVEL {newLevel}!";
+		levelUpLabel.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
+		levelUpLabel.Position = new Vector2(GetViewportRect().Size.X / 2 - 50, GetViewportRect().Size.Y / 2);
+		levelUpLabel.AddThemeColorOverride("font_color", ColorPalette.Accent);
+		levelUpLabel.ZIndex = 100; 
+
+		AddChild(levelUpLabel);
+
+		
+		var tween = CreateTween();
+		tween.TweenProperty(levelUpLabel, "modulate:a", 0.0f, 2.0f);
+		tween.TweenCallback(Callable.From(() => levelUpLabel.QueueFree()));
+	}
+}
