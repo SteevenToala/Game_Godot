@@ -21,3 +21,4 @@ res://scripts/entities/Laser.cs
 res://scenes/enemy_projectile.tscn
 res://scripts/utils/ColorPalette.cs
 res://scenes/game.tscn
+res://scripts/ui/StartScreen.cs

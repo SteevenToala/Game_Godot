@@ -12,7 +12,9 @@ public partial class GameManager : Node2D, IInitializable
 	private LevelManager _levelManager;
 	private Hud _hud;
 	private GameOverScreen _gameOverScreen;
+	private StartScreen _startScreen;
 	private AudioService _audioService;
+	private bool _gameStarted = false;
 	
 	public override void _Ready()
 	{
@@ -24,13 +26,55 @@ public partial class GameManager : Node2D, IInitializable
 		InitializeNodes();
 		InitializeManagers();
 		SetupPlayer();
-		LoadGameAsync();
+		ShowStartScreen();
 	}
 	
 	public override void _Process(double delta)
 	{
 		HandleInput();
-		AdvanceBackground((float)delta);
+		
+		if (_gameStarted)
+		{
+			AdvanceBackground((float)delta);
+		}
+	}
+	
+	private void ShowStartScreen()
+	{
+		// Ocultar elementos del juego
+		_player?.Hide();
+		_hud?.Hide();
+		_spawnManager?.GetNode<Timer>("SpawnTimer")?.Stop();
+		
+		// Mostrar pantalla de inicio
+		_startScreen?.ShowStartScreen();
+	}
+	
+	private void OnPlayButtonPressed()
+	{
+		StartGame();
+	}
+	
+	private void StartGame()
+	{
+		_gameStarted = true;
+		
+		// Mostrar elementos del juego
+		_player?.Show();
+		_hud?.Show();
+		_spawnManager?.GetNode<Timer>("SpawnTimer")?.Start();
+		
+		// Ocultar pantalla de inicio
+		_startScreen?.Hide();
+		
+		// Iniciar carga del juego
+		LoadGameAsync();
+	}
+	
+	private async void LoadGameAsync()
+	{
+		await ToSignal(GetTree().CreateTimer(Constants.GameLoadTimeout), 
+			SceneTreeTimer.SignalName.Timeout);
 	}
 	
 	private void InitializeNodes()
@@ -54,6 +98,15 @@ public partial class GameManager : Node2D, IInitializable
 		_player = GetNode<Node2D>("Player");
 		_hud = GetNode<Hud>("UILayer/HUD");
 		_gameOverScreen = GetNode<GameOverScreen>("UILayer/GameOverScreen");
+		
+		// Crear StartScreen dinámicamente si no existe
+		_startScreen = GetNodeOrNull<StartScreen>("UILayer/StartScreen");
+		if (_startScreen == null)
+		{
+			_startScreen = new StartScreen();
+			_startScreen.Name = "StartScreen";
+			GetNode<CanvasLayer>("UILayer").AddChild(_startScreen);
+		}
 		
 		// Crear AudioService como singleton
 		_audioService = GetNode<AudioService>("SFX");
@@ -109,6 +162,12 @@ public partial class GameManager : Node2D, IInitializable
 			_hud.SetLevel(_levelManager.CurrentLevel);
 			_hud.SetNextLevelProgress(0, _levelManager.ScoreForNextLevel);
 		}
+		
+		// Conectar evento del botón de inicio
+		if (_startScreen != null)
+		{
+			_startScreen.PlayButtonPressed += OnPlayButtonPressed;
+		}
 	}
 	
 	private void SetupPlayer()
@@ -123,12 +182,6 @@ public partial class GameManager : Node2D, IInitializable
 				player.Killed += OnPlayerKilled;
 			}
 		}
-	}
-	
-	private async void LoadGameAsync()
-	{
-		await ToSignal(GetTree().CreateTimer(Constants.GameLoadTimeout), 
-			SceneTreeTimer.SignalName.Timeout);
 	}
 	
 	private void HandleInput()
