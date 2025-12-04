@@ -41,6 +41,12 @@ public partial class GameOverScreen : Control, IInitializable
 		{
 			_scoreLabel.Text = $"Score: {value}";
 		}
+
+		// Actualizar record del usuario autenticado
+		AuthService.UpdateScore(value);
+
+		// Refrescar Hi-Score mostrado
+		SetHighScore(AuthService.GetHighScore());
 	}
 
 	public void SetHighScore(uint value)

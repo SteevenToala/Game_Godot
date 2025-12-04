@@ -1,4 +1,5 @@
 using Godot;
+using System.Linq;
 
 public partial class LoginScreen : Control, IInitializable
 {
@@ -25,6 +26,9 @@ public partial class LoginScreen : Control, IInitializable
 	private Button _changePasswordMenuButton;
 	private Button _logoutButton;
 	private Label _userInfoLabel;
+	// Lista de usuarios guardados (Top 3)
+	private VBoxContainer _savedUsersList;
+	private Control _savedUsersSection;
 
 	public override void _Ready()
 	{
@@ -85,7 +89,24 @@ public partial class LoginScreen : Control, IInitializable
 		titleLabel.AddThemeColorOverride("font_outline_color", ColorPalette.Accent);
 		panelStack.AddChild(titleLabel);
 
-		// --- SECCIÓN DE LOGIN ---
+		// --- SECCIÓN: TOP 3 USUARIOS GUARDADOS (primero) ---
+		_savedUsersSection = new VBoxContainer();
+		(_savedUsersSection as VBoxContainer).Size = new Vector2(404, 180);
+		(_savedUsersSection as VBoxContainer).Alignment = BoxContainer.AlignmentMode.Center;
+		panelStack.AddChild(_savedUsersSection);
+
+		var savedTitle = new Label();
+		savedTitle.Text = "Usuarios guardados (Top 3)";
+		savedTitle.HorizontalAlignment = HorizontalAlignment.Center;
+		savedTitle.AddThemeColorOverride("font_color", ColorPalette.Text);
+		savedTitle.AddThemeFontSizeOverride("font_size", 18);
+		_savedUsersSection.AddChild(savedTitle);
+
+		_savedUsersList = new VBoxContainer();
+		_savedUsersList.AddThemeConstantOverride("separation", 8);
+		_savedUsersSection.AddChild(_savedUsersList);
+
+		// --- SECCIÓN DE LOGIN (debajo) ---
 		var loginContainer = new VBoxContainer();
 		loginContainer.Size = new Vector2(404, 230);
 		loginContainer.Alignment = BoxContainer.AlignmentMode.Center;
@@ -192,6 +213,7 @@ public partial class LoginScreen : Control, IInitializable
 		_statusLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
 		_statusLabel.AddThemeFontSizeOverride("font_size", 16);
 		loginContainer.AddChild(_statusLabel);
+
 
 		// --- SECCIÓN DE USUARIO LOGUEADO ---
 		var userContainer = new VBoxContainer();
@@ -451,10 +473,77 @@ public partial class LoginScreen : Control, IInitializable
 		_changePasswordMenuButton.Visible = isLoggedIn;
 		_logoutButton.Visible = isLoggedIn;
 
+		// Mostrar lista de usuarios guardados solo cuando NO está logueado
+		_savedUsersSection.Visible = !isLoggedIn;
+		if (!isLoggedIn)
+		{
+			RenderSavedUsersTop3();
+		}
+
 		if (isLoggedIn)
 		{
 			var user = AuthService.CurrentUser;
 			_userInfoLabel.Text = $"👤 Usuario: {user.Username}\n🏆 Record: {user.HighScore}\n📅 Último acceso: {user.LastLogin:yyyy-MM-dd HH:mm}";
+		}
+	}
+
+	private void RenderSavedUsersTop3()
+	{
+		// Limpiar lista actual
+		foreach (Node child in _savedUsersList.GetChildren())
+		{
+			child.QueueFree();
+		}
+
+		var users = AuthService.GetSavedUsers();
+		if (users == null || !users.Any())
+		{
+			var emptyLabel = new Label();
+			emptyLabel.Text = "Sin usuarios guardados aún";
+			emptyLabel.HorizontalAlignment = HorizontalAlignment.Center;
+			emptyLabel.AddThemeColorOverride("font_color", ColorPalette.Text.Darkened(0.2f));
+			_savedUsersList.AddChild(emptyLabel);
+			return;
+		}
+
+		// Ordenar por puntaje descendente y tomar top 3
+		foreach (var u in users
+			.OrderByDescending(x => x.HighScore)
+			.ThenByDescending(x => x.LastLogin)
+			.Take(3))
+		{
+			var row = new HBoxContainer();
+			row.AddThemeConstantOverride("separation", 12);
+			_savedUsersList.AddChild(row);
+
+			var nameLabel = new Label();
+			nameLabel.Text = $"👤 {u.Username}";
+			nameLabel.Size = new Vector2(150, 24);
+			nameLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
+			row.AddChild(nameLabel);
+
+			var scoreLabel = new Label();
+			scoreLabel.Text = $"🏆 {u.HighScore}";
+			scoreLabel.Size = new Vector2(80, 24);
+			scoreLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
+			row.AddChild(scoreLabel);
+
+			var lastLabel = new Label();
+			lastLabel.Text = $"📅 {u.LastLogin:yyyy-MM-dd HH:mm}";
+			lastLabel.Size = new Vector2(140, 24);
+			lastLabel.AddThemeColorOverride("font_color", ColorPalette.Text.Darkened(0.1f));
+			row.AddChild(lastLabel);
+
+			var useButton = new Button();
+			useButton.Text = "Usar";
+			useButton.Size = new Vector2(60, 28);
+			useButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat(){ BgColor = ColorPalette.Button });
+			useButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+			row.AddChild(useButton);
+
+			useButton.Pressed += () => {
+				PreFillCredentials(u.Username);
+			};
 		}
 	}
 
