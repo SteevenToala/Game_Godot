@@ -42,21 +42,21 @@ public partial class LoginScreen : Control, IInitializable
 	{
 		// Panel principal
 		var mainPanel = new Panel();
-		mainPanel.Size = new Vector2(400, 500);
+		mainPanel.Size = new Vector2(400, 700);
 		mainPanel.Position = new Vector2(50, 100);
 		mainPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
 		AddChild(mainPanel);
 
 		// Título
 		var titleLabel = new Label();
-		titleLabel.Text = "VERTICAL SHOOTER - LOGIN";
-		titleLabel.Position = new Vector2(20, 20);
+		titleLabel.Text = "AUTENTICACION";
+		titleLabel.Position = new Vector2(150, 20);
 		titleLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
 		mainPanel.AddChild(titleLabel);
 
 		// --- SECCIÓN DE LOGIN ---
 		var loginContainer = new VBoxContainer();
-		loginContainer.Position = new Vector2(20, 60);
+		loginContainer.Position = new Vector2(20, 50);
 		loginContainer.Size = new Vector2(360, 200);
 		mainPanel.AddChild(loginContainer);
 
@@ -94,7 +94,7 @@ public partial class LoginScreen : Control, IInitializable
 
 		_loginButton = new Button();
 		_loginButton.Text = "INICIAR SESIÓN";
-		_loginButton.Size = new Vector2(170, 40);
+		_loginButton.Size = new Vector2(100, 40);
 		_loginButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
 		_loginButton.AddThemeColorOverride("font_color", ColorPalette.Text);
 		buttons.AddChild(_loginButton);

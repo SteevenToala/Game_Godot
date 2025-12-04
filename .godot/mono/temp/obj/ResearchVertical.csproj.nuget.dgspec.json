@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\ResearchVertical.csproj": {}
+    "C:\\Game\\ResearchVertical.csproj": {}
   },
   "projects": {
-    "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\ResearchVertical.csproj": {
+    "C:\\Game\\ResearchVertical.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\ResearchVertical.csproj",
+        "projectUniqueName": "C:\\Game\\ResearchVertical.csproj",
         "projectName": "ResearchVertical",
-        "projectPath": "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\ResearchVertical.csproj",
+        "projectPath": "C:\\Game\\ResearchVertical.csproj",
         "packagesPath": "C:\\Users\\steev\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\.godot\\mono\\temp\\obj\\",
+        "outputPath": "C:\\Game\\.godot\\mono\\temp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "uet+gB5iaHc=",
+  "dgSpecHash": "Xexr1wO5g7Y=",
   "success": true,
-  "projectFilePath": "C:\\Users\\steev\\Downloads\\godot-vertical-shooter-demo-main\\godot-vertical-shooter-demo-main\\ResearchVertical.csproj",
+  "projectFilePath": "C:\\Game\\ResearchVertical.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\steev\\.nuget\\packages\\godot.sourcegenerators\\4.5.1\\godot.sourcegenerators.4.5.1.nupkg.sha512",
     "C:\\Users\\steev\\.nuget\\packages\\godotsharp\\4.5.1\\godotsharp.4.5.1.nupkg.sha512",
