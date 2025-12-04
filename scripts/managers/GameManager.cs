@@ -5,16 +5,14 @@ public partial class GameManager : Node2D, IInitializable
 	private Node2D _player;
 	private Node2D _playerSpawnPosition;
 	private Node2D _laserContainer;
-	private Node2D _projectileContainer; // NUEVO: Contenedor para proyectiles enemigos
+	private Node2D _projectileContainer;
 	private ParallaxBackground _parallaxBackground;
 	private ScoreManager _scoreManager;
 	private SpawnManager _spawnManager;
 	private LevelManager _levelManager;
-	private UserManager _userManager; // NUEVO: Sistema de usuarios
 	private Hud _hud;
 	private GameOverScreen _gameOverScreen;
 	private AudioService _audioService;
-	private bool _gameActive = false; // NUEVO: Control de estado del juego
 	
 	public override void _Ready()
 	{
@@ -24,30 +22,15 @@ public partial class GameManager : Node2D, IInitializable
 	public void Initialize()
 	{
 		InitializeNodes();
-		InitializeUserManager();
 		InitializeManagers();
 		SetupPlayer();
-		
-		// NUEVO: Ocultar elementos del juego hasta que haya login
-		HideGameElements();
-		
-		// CAMBIO: No iniciar automáticamente, esperar login
-		// Solo mostrar la pantalla de login
-		if (_userManager != null)
-		{
-			_userManager.ShowLoginScreen();
-		}
+		LoadGameAsync();
 	}
 	
 	public override void _Process(double delta)
 	{
 		HandleInput();
-		
-		// Solo procesar el background si el juego está activo
-		if (_gameActive)
-		{
-			AdvanceBackground((float)delta);
-		}
+		AdvanceBackground((float)delta);
 	}
 	
 	private void InitializeNodes()
@@ -244,13 +227,6 @@ public partial class GameManager : Node2D, IInitializable
 		{
 			_gameOverScreen.SetScore(_scoreManager.CurrentScore);
 			_gameOverScreen.SetHighScore(_scoreManager.HighScore);
-			
-			// Mostrar información del usuario en el game over
-			if (_userManager != null && _userManager.IsUserLoggedIn())
-			{
-				var user = _userManager.GetCurrentUser();
-				_gameOverScreen.SetUser(user.Username);
-			}
 		}
 		
 		await ToSignal(GetTree().CreateTimer(Constants.PlayerDeathTimeout), 
@@ -275,7 +251,7 @@ public partial class GameManager : Node2D, IInitializable
 	
 	private void OnLevelChanged(uint newLevel)
 	{
-		GD.Print($"🎉 ¡LEVEL UP! Nivel {newLevel}");
+		GD.Print($"LEVEL UP! Nivel {newLevel}");
 		_hud?.SetLevel(newLevel);
 		_hud?.ShowLevelUpMessage(newLevel);
 		AudioService.Instance?.PlayExplosion();
@@ -283,146 +259,6 @@ public partial class GameManager : Node2D, IInitializable
 	
 	private void OnDifficultyUpdated(float speedMultiplier, float spawnRateMultiplier)
 	{
-		GD.Print($"🔧 Dificultad actualizada - Velocidad: {speedMultiplier:F1}x, Spawn Rate: {spawnRateMultiplier:F1}x");
-	}
-
-	private void InitializeUserManager()
-	{
-		// Crear UserManager si no existe
-		_userManager = GetNodeOrNull<UserManager>("UserManager");
-		if (_userManager == null)
-		{
-			_userManager = new UserManager();
-			_userManager.Name = "UserManager";
-			AddChild(_userManager);
-		}
-
-		// Conectar eventos del UserManager usando las constantes generadas (pascal case)
-		if (_userManager != null)
-		{
-			var err1 = _userManager.Connect(UserManager.SignalName.UserLoggedIn, new Callable(this, nameof(OnUserLoggedIn)));
-			var err2 = _userManager.Connect(UserManager.SignalName.UserLoggedOut, new Callable(this, nameof(OnUserLoggedOut)));
-			GD.Print($"InitUserManager: connected login signal result={err1}, logout result={err2}");
-		}
-	}
-
-	private void StartGame()
-	{
-		_gameActive = true;
-		
-		// Ocultar pantalla de login
-		if (_userManager != null)
-		{
-			_userManager.HideLoginScreen();
-		}
-
-		// NUEVO: Mostrar elementos del juego
-		ShowGameElements();
-		
-		// Refrescar high score en el ScoreManager
-		if (_scoreManager != null)
-		{
-			_scoreManager.RefreshHighScore();
-		}
-		
-		// Actualizar HUD con información del usuario
-		if (_hud != null && _userManager != null && _userManager.IsUserLoggedIn())
-		{
-			var user = _userManager.GetCurrentUser();
-			_hud.SetUser(user.Username);
-			_hud.SetHighScore(user.HighScore);
-		}
-		
-		// Inicializar el juego
-		LoadGameAsync();
-		
-		GD.Print("🎮 Juego iniciado correctamente");
-	}
-
-	private void OnUserLoggedIn(string username)
-	{
-		GD.Print($"🎯 Usuario logueado en GameManager: {username}");
-		StartGame();
-	}
-
-	private void OnUserLoggedOut()
-	{
-		GD.Print("👋 Usuario deslogueado en GameManager");
-		_gameActive = false;
-		
-		// Ocultar elementos del juego
-		HideGameElements();
-		
-		// Mostrar pantalla de login
-		if (_userManager != null)
-		{
-			_userManager.ShowLoginScreen();
-		}
-	}
-
-	private void HideGameElements()
-	{
-		// Ocultar player
-		if (_player != null)
-		{
-			_player.Visible = false;
-		}
-
-		// Ocultar HUD
-		if (_hud != null)
-		{
-			_hud.Visible = false;
-		}
-
-		// Ocultar background (opcional)
-		if (_parallaxBackground != null)
-		{
-			_parallaxBackground.Visible = false;
-		}
-
-		// Pausar spawning accediendo al timer
-		if (_spawnManager != null)
-		{
-			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
-			if (spawnTimer != null)
-			{
-				spawnTimer.Paused = true;
-			}
-		}
-
-		GD.Print("🔒 Elementos del juego ocultos - Esperando login");
-	}
-
-	private void ShowGameElements()
-	{
-		// Mostrar player
-		if (_player != null)
-		{
-			_player.Visible = true;
-		}
-
-		// Mostrar HUD
-		if (_hud != null)
-		{
-			_hud.Visible = true;
-		}
-
-		// Mostrar background
-		if (_parallaxBackground != null)
-		{
-			_parallaxBackground.Visible = true;
-		}
-
-		// Reanudar spawning
-		if (_spawnManager != null)
-		{
-			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
-			if (spawnTimer != null)
-			{
-				spawnTimer.Paused = false;
-			}
-		}
-
-		GD.Print("🔓 Elementos del juego mostrados - Juego activo");
+		GD.Print($"Dificultad actualizada - Velocidad: {speedMultiplier:F1}x, Spawn Rate: {spawnRateMultiplier:F1}x");
 	}
 }

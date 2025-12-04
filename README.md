@@ -2,7 +2,7 @@
 
 ## Descripción General
 
-Un **shooter vertical espacial** (estilo shoot 'em up clásico) desarrollado en **Godot 4.5 con C#**. El jugador controla una nave que debe sobrevivir oleadas de enemigos mientras acumula puntos. El proyecto implementa patrones de diseño avanzados y un sistema completo de gestión de usuarios con autenticación segura.
+Un **shooter vertical espacial** (estilo shoot 'em up clásico) desarrollado en **Godot 4.5 con C#**. El jugador controla una nave que debe sobrevivir oleadas de enemigos mientras acumula puntos. El proyecto implementa múltiples patrones de diseño avanzados con una arquitectura limpia y profesional.
 
 Este proyecto está basado en el tutorial ['How to make a Space Shooter Game in Godot'](https://www.youtube.com/watch?v=QoNukqpolS8) pero ha sido extendido significativamente con arquitectura profesional y características adicionales.
 
@@ -17,8 +17,7 @@ Este proyecto está basado en el tutorial ['How to make a Space Shooter Game in 
   - Shooter Enemies que disparan proyectiles
   - Diver Enemies con movimiento en picada
 - **Sistema de Niveles**: Dificultad progresiva que aumenta cada 2000 puntos
-- **Puntuación**: Sistema de score con récords personalizados por usuario
-- **Autenticación**: Sistema completo de login con contraseñas encriptadas
+- **Puntuación**: Sistema de score con high score persistente
 
 ### Especificaciones Técnicas
 
@@ -87,19 +86,15 @@ MANAGERS LAYER (scripts/managers/)
 ├── GameManager.cs         # Controlador principal del juego
 ├── ScoreManager.cs        # Gestión de puntuación
 ├── SpawnManager.cs        # Generación de enemigos
-├── LevelManager.cs        # Sistema de niveles/dificultad
-└── UserManager.cs         # Sistema de usuarios
+└── LevelManager.cs        # Sistema de niveles/dificultad
 
 SERVICES LAYER (scripts/services/)
 ├── AudioService.cs        # Reproducción de sonidos
-├── AuthService.cs         # Autenticación de usuarios
-├── PasswordService.cs     # Encriptación SHA-256
 └── SaveService.cs         # Persistencia de datos
 
 UI LAYER (scripts/ui/)
 ├── Hud.cs                 # Interfaz en juego
-├── GameOverScreen.cs      # Pantalla de game over
-└── LoginScreen.cs         # Sistema de login completo
+└── GameOverScreen.cs      # Pantalla de game over
 
 FACTORIES & COMMANDS
 ├── factories/             # Creación de objetos
@@ -107,33 +102,6 @@ FACTORIES & COMMANDS
 
 STRATEGIES
 └── strategies/movement/   # Algoritmos de movimiento
-```
-
-## Sistema de Usuarios
-
-### Características de Seguridad
-
-- **Encriptación**: Contraseñas encriptadas con SHA-256 + salt
-- **Historial de Contraseñas**: No permite reutilizar las últimas 5 contraseñas
-- **Validaciones**:
-  - Nombre de usuario: 3-20 caracteres alfanuméricos
-  - Contraseña: Mínimo 4 caracteres
-- **Persistencia**: Datos guardados en `user://user_data.json`
-
-### Funcionalidades
-
-1. **Registro de Usuarios**: Creación automática en el primer uso
-2. **Login/Logout**: Sistema de autenticación completo
-3. **Cambio de Contraseña**: Con validación de contraseña anterior
-4. **High Scores Personalizados**: Cada usuario mantiene su propio récord
-5. **Última Sesión**: Recuerda el último usuario conectado
-
-### Flujo de Usuario
-
-```
-Inicio → Pantalla de Login → Autenticación → Juego Activo → Game Over → Repetir
-    ↑                                                              ↓
-    └────────────────────── Logout (Opcional) ────────────────────┘
 ```
 
 ## Sistemas del Juego
@@ -168,7 +136,6 @@ Efectos de sonido incluidos:
 - **Flechas Izquierda/Derecha**: Movimiento horizontal
 - **R**: Reiniciar el juego
 - **Esc**: Salir del juego
-- **F1**: Mostrar/ocultar pantalla de login durante el juego
 - **Disparo**: Automático (no requiere input)
 
 ## Instalación y Uso
@@ -183,17 +150,8 @@ Efectos de sonido incluidos:
 
 1. Abrir el proyecto en Godot
 2. La escena principal es `res://scenes/game.tscn`
-3. Al ejecutar, aparecerá la pantalla de login
-4. Crear una cuenta o iniciar sesión
-5. Jugar y acumular puntos
-
-### Primera Ejecución
-
-Al ejecutar por primera vez:
-1. Ingresa un nombre de usuario (3-20 caracteres alfanuméricos)
-2. Ingresa una contraseña (mínimo 4 caracteres)
-3. El sistema creará automáticamente tu cuenta
-4. Tu high score comenzará en 0
+3. Presionar F5 para ejecutar el juego
+4. Jugar y acumular puntos
 
 ## Extensibilidad
 
@@ -239,14 +197,7 @@ Configuración del proyecto C# con todas las dependencias necesarias.
 ## Estado del Proyecto
 
 El proyecto está completamente funcional con todas las características implementadas:
-- Sistema de usuarios operativo
 - Sistema de niveles con dificultad progresiva
-- Múltiples tipos de enemigos
-- Sistema de puntuación con high scores personalizados
-- Arquitectura limpia y extensible
-
-## Notas de Desarrollo
-
-Para más detalles sobre errores corregidos y el sistema de usuarios, consulta:
-- `ERRORES_CORREGIDOS.md` - Historial de bugs corregidos
-- `USER_SYSTEM_README.md` - Documentación detallada del sistema de usuarios
+- Múltiples tipos de enemigos con diferentes comportamientos
+- Sistema de puntuación con high score persistente
+- Arquitectura limpia y extensible basada en patrones de diseño profesionales

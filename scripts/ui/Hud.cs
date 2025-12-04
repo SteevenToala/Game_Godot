@@ -6,7 +6,6 @@ public partial class Hud : Control, IInitializable
 	private Label _highScoreLabel;
 	private Label _levelLabel;
 	private Label _nextLevelLabel;
-	private Label _userLabel; // NUEVO: Label para mostrar el usuario actual
 
 	public override void _Ready()
 	{
@@ -24,18 +23,15 @@ public partial class Hud : Control, IInitializable
 		// Nuevos labels para nivel - usando GetNodeOrNull para evitar errores si no existen
 		_levelLabel = GetNodeOrNull<Label>("Level");
 		_nextLevelLabel = GetNodeOrNull<Label>("NextLevel");
-		_userLabel = GetNodeOrNull<Label>("User");
 
 		// Si no existen los nodos, los creamos dinámicamente
 		CreateMissingLevelLabels();
-		CreateMissingUserLabel();
 
 		// Aplicar colores
 		_scoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
 		_highScoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
 		_levelLabel?.AddThemeColorOverride("font_color", ColorPalette.Primary);
 		_nextLevelLabel?.AddThemeColorOverride("font_color", ColorPalette.Primary);
-		_userLabel?.AddThemeColorOverride("font_color", ColorPalette.Accent);
 	}
 
 	private void CreateMissingLevelLabels()
@@ -57,19 +53,6 @@ public partial class Hud : Control, IInitializable
 			_nextLevelLabel.Text = "Next: 2000";
 			_nextLevelLabel.Position = new Vector2(10, 90); 
 			AddChild(_nextLevelLabel);
-		}
-	}
-
-	private void CreateMissingUserLabel()
-	{
-		if (_userLabel == null)
-		{
-			_userLabel = new Label();
-			_userLabel.Name = "User";
-			_userLabel.Text = "Usuario: ---";
-			_userLabel.Position = new Vector2(10, 120); 
-			_userLabel.AddThemeColorOverride("font_color", ColorPalette.Accent);
-			AddChild(_userLabel);
 		}
 	}
 
@@ -103,14 +86,6 @@ public partial class Hud : Control, IInitializable
 		{
 			uint remaining = nextLevelScore - currentScore;
 			_nextLevelLabel.Text = $"Next: {remaining}";
-		}
-	}
-
-	public void SetUser(string username)
-	{
-		if (_userLabel != null)
-		{
-			_userLabel.Text = $"Usuario: {username}";
 		}
 	}
 
