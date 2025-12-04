@@ -40,25 +40,56 @@ public partial class LoginScreen : Control, IInitializable
 
 	private void CreateUI()
 	{
-		// Panel principal
+		// Fondo negro a pantalla completa
+		var bg = new ColorRect();
+		bg.Color = Colors.Black;
+		bg.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(bg);
+
+		// Panel principal (centrado y con estilo)
 		var mainPanel = new Panel();
-		mainPanel.Size = new Vector2(400, 500);
-		mainPanel.Position = new Vector2(50, 100);
-		mainPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
+		mainPanel.Size = new Vector2(460, 560);
+		mainPanel.SetAnchorsPreset(LayoutPreset.Center);
+		mainPanel.SetOffsetsPreset(LayoutPreset.Center);
+		var panelStyle = new StyleBoxFlat() { BgColor = Colors.Black };
+		panelStyle.CornerRadiusTopLeft = 12;
+		panelStyle.CornerRadiusTopRight = 12;
+		panelStyle.CornerRadiusBottomLeft = 12;
+		panelStyle.CornerRadiusBottomRight = 12;
+		panelStyle.BorderColor = ColorPalette.Accent;
+		panelStyle.BorderWidthTop = 2;
+		panelStyle.BorderWidthBottom = 2;
+		panelStyle.BorderWidthLeft = 2;
+		panelStyle.BorderWidthRight = 2;
+		panelStyle.ShadowColor = new Color(0,0,0,0.6f);
+		panelStyle.ShadowSize = 16;
+		panelStyle.ShadowOffset = new Vector2(0, 6);
+		mainPanel.AddThemeStyleboxOverride("panel", panelStyle);
 		AddChild(mainPanel);
+
+		// Contenedor vertical interno para evitar solapamientos
+		var panelStack = new VBoxContainer();
+		panelStack.Size = mainPanel.Size;
+		panelStack.Position = Vector2.Zero;
+		panelStack.AddThemeConstantOverride("separation", 16);
+		panelStack.Alignment = BoxContainer.AlignmentMode.Center;
+		mainPanel.AddChild(panelStack);
 
 		// Título
 		var titleLabel = new Label();
 		titleLabel.Text = "VERTICAL SHOOTER - LOGIN";
-		titleLabel.Position = new Vector2(20, 20);
+		titleLabel.Size = new Vector2(mainPanel.Size.X, 40);
+		titleLabel.HorizontalAlignment = HorizontalAlignment.Center;
 		titleLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		mainPanel.AddChild(titleLabel);
+		titleLabel.AddThemeFontSizeOverride("font_size", 24);
+		titleLabel.AddThemeColorOverride("font_outline_color", ColorPalette.Accent);
+		panelStack.AddChild(titleLabel);
 
 		// --- SECCIÓN DE LOGIN ---
 		var loginContainer = new VBoxContainer();
-		loginContainer.Position = new Vector2(20, 60);
-		loginContainer.Size = new Vector2(360, 200);
-		mainPanel.AddChild(loginContainer);
+		loginContainer.Size = new Vector2(404, 230);
+		loginContainer.Alignment = BoxContainer.AlignmentMode.Center;
+		panelStack.AddChild(loginContainer);
 
 		// Campo de usuario
 		var usernameLabel = new Label();
@@ -68,9 +99,31 @@ public partial class LoginScreen : Control, IInitializable
 
 		_usernameField = new LineEdit();
 		_usernameField.PlaceholderText = "Ingresa tu nombre de usuario";
-		_usernameField.Size = new Vector2(340, 30);
+		_usernameField.Size = new Vector2(380, 38);
 		_usernameField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_usernameField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
+		_usernameField.AddThemeColorOverride("placeholder_color", ColorPalette.Text.Darkened(0.35f));
+		var inputStyle = new StyleBoxFlat() { BgColor = ColorPalette.InputBackground };
+		inputStyle.CornerRadiusTopLeft = 8;
+		inputStyle.CornerRadiusTopRight = 8;
+		inputStyle.CornerRadiusBottomLeft = 8;
+		inputStyle.CornerRadiusBottomRight = 8;
+		inputStyle.BorderColor = ColorPalette.Accent;
+		inputStyle.BorderWidthTop = 1;
+		inputStyle.BorderWidthBottom = 1;
+		inputStyle.BorderWidthLeft = 1;
+		inputStyle.BorderWidthRight = 1;
+		_usernameField.AddThemeStyleboxOverride("normal", inputStyle);
+		var inputHover = inputStyle.Duplicate() as StyleBoxFlat;
+		inputHover.BgColor = ColorPalette.InputBackground.Lightened(0.06f);
+		_usernameField.AddThemeStyleboxOverride("hover", inputHover);
+		var inputFocus = inputStyle.Duplicate() as StyleBoxFlat;
+		inputFocus.BorderColor = ColorPalette.Accent.Lightened(0.2f);
+		inputFocus.BorderWidthTop = 2;
+		inputFocus.BorderWidthBottom = 2;
+		inputFocus.BorderWidthLeft = 2;
+		inputFocus.BorderWidthRight = 2;
+		_usernameField.AddThemeStyleboxOverride("focus", inputFocus);
+		_usernameField.AddThemeFontSizeOverride("font_size", 16);
 		loginContainer.AddChild(_usernameField);
 
 		// Campo de contraseña
@@ -82,43 +135,69 @@ public partial class LoginScreen : Control, IInitializable
 		_passwordField = new LineEdit();
 		_passwordField.PlaceholderText = "Ingresa tu contraseña";
 		_passwordField.Secret = true;
-		_passwordField.Size = new Vector2(340, 30);
+		_passwordField.Size = new Vector2(380, 38);
 		_passwordField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_passwordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
+		_passwordField.AddThemeStyleboxOverride("normal", inputStyle);
+		_passwordField.AddThemeStyleboxOverride("hover", inputHover);
+		_passwordField.AddThemeStyleboxOverride("focus", inputFocus);
+		_passwordField.AddThemeColorOverride("placeholder_color", ColorPalette.Text.Darkened(0.35f));
+		_passwordField.AddThemeFontSizeOverride("font_size", 16);
 		loginContainer.AddChild(_passwordField);
 
 		// Botones: Login + Crear cuenta
 		var buttons = new HBoxContainer();
-		buttons.Size = new Vector2(360, 40);
+		buttons.Size = new Vector2(404, 48);
+		buttons.AddThemeConstantOverride("separation", 12);
 		loginContainer.AddChild(buttons);
 
 		_loginButton = new Button();
 		_loginButton.Text = "INICIAR SESIÓN";
-		_loginButton.Size = new Vector2(170, 40);
-		_loginButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_loginButton.Size = new Vector2(192, 48);
+		var btnNormal = new StyleBoxFlat() { BgColor = ColorPalette.Button };
+		btnNormal.CornerRadiusTopLeft = 8;
+		btnNormal.CornerRadiusTopRight = 8;
+		btnNormal.CornerRadiusBottomLeft = 8;
+		btnNormal.CornerRadiusBottomRight = 8;
+		btnNormal.BorderColor = ColorPalette.Accent;
+		btnNormal.BorderWidthTop = 1;
+		btnNormal.BorderWidthBottom = 1;
+		btnNormal.BorderWidthLeft = 1;
+		btnNormal.BorderWidthRight = 1;
+		var btnHover = btnNormal.Duplicate() as StyleBoxFlat;
+		btnHover.BgColor = ColorPalette.Button.Lightened(0.08f);
+		var btnPressed = btnNormal.Duplicate() as StyleBoxFlat;
+		btnPressed.BgColor = ColorPalette.Button.Darkened(0.08f);
+		_loginButton.AddThemeStyleboxOverride("normal", btnNormal);
+		_loginButton.AddThemeStyleboxOverride("hover", btnHover);
+		_loginButton.AddThemeStyleboxOverride("pressed", btnPressed);
 		_loginButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_loginButton.AddThemeFontSizeOverride("font_size", 16);
 		buttons.AddChild(_loginButton);
 
 		_createButton = new Button();
 		_createButton.Text = "CREAR CUENTA";
-		_createButton.Size = new Vector2(170, 40);
-		_createButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_createButton.Size = new Vector2(192, 48);
+		_createButton.AddThemeStyleboxOverride("normal", btnNormal);
+		_createButton.AddThemeStyleboxOverride("hover", btnHover);
+		_createButton.AddThemeStyleboxOverride("pressed", btnPressed);
 		_createButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_createButton.AddThemeFontSizeOverride("font_size", 16);
 		buttons.AddChild(_createButton);
 
 		// Label de estado
 		_statusLabel = new Label();
 		_statusLabel.Text = "";
 		_statusLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		_statusLabel.Size = new Vector2(340, 60);
+		_statusLabel.Size = new Vector2(380, 64);
 		_statusLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_statusLabel.AddThemeFontSizeOverride("font_size", 16);
 		loginContainer.AddChild(_statusLabel);
 
 		// --- SECCIÓN DE USUARIO LOGUEADO ---
 		var userContainer = new VBoxContainer();
-		userContainer.Position = new Vector2(20, 280);
-		userContainer.Size = new Vector2(360, 200);
-		mainPanel.AddChild(userContainer);
+		userContainer.Size = new Vector2(404, 200);
+		userContainer.Alignment = BoxContainer.AlignmentMode.Center;
+		panelStack.AddChild(userContainer);
 
 		_userInfoLabel = new Label();
 		_userInfoLabel.Text = "";

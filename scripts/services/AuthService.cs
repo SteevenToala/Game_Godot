@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 /// <summary>
 /// Servicio de autenticación para manejar el usuario único del juego
@@ -8,6 +9,8 @@ public static class AuthService
 {
     private static User _currentUser = null;
     private const string UserDataFile = "user://user_data.json";
+    // Nuevo: soportar múltiples usuarios (máximo 3)
+    private static System.Collections.Generic.List<User> _users = new System.Collections.Generic.List<User>();
 
     /// <summary>
     /// Usuario actualmente autenticado
@@ -34,12 +37,16 @@ public static class AuthService
             return new AuthResult(false, "Contraseña inválida. Debe tener al menos 4 caracteres.");
         }
 
-        var storedUser = LoadUser();
+        // Cargar lista de usuarios
+        LoadUsers();
+        var storedUser = _users.Find(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
 
         // Si no existe usuario, crear uno nuevo
         if (storedUser == null)
         {
-            return CreateNewUser(username, password);
+            // Si no existe en la lista, crear y agregar respetando máximo 3
+            var createRes = CreateNewUser(username, password);
+            return createRes;
         }
 
         // Verificar credenciales
@@ -56,7 +63,7 @@ public static class AuthService
         // Login exitoso
         storedUser.UpdateLastLogin();
         _currentUser = storedUser;
-        SaveUser(_currentUser);
+        SaveUsers();
 
         GD.Print($"✅ Login exitoso: {_currentUser.Username}");
         return new AuthResult(true, "Login exitoso", _currentUser);
@@ -77,12 +84,14 @@ public static class AuthService
             return new AuthResult(false, "Contraseña inválida. Debe tener al menos 4 caracteres.");
         }
 
-        var storedUser = LoadUser();
+        // Cargar usuarios existentes
+        LoadUsers();
 
-        // Si existe usuario diferente, se sobrescribirá
-        if (storedUser != null && storedUser.Username != username)
+        // Si ya existe, impedir duplicado
+        var existing = _users.Find(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
         {
-            GD.Print($"⚠️ Registrando nuevo usuario '{username}' y sobrescribiendo '{storedUser.Username}'");
+            return new AuthResult(false, "El usuario ya existe", existing);
         }
 
         var result = CreateNewUser(username, password);
@@ -125,7 +134,7 @@ public static class AuthService
 
         // Actualizar contraseña
         _currentUser.UpdatePassword(newPasswordHash);
-        SaveUser(_currentUser);
+        SaveUsers();
 
         GD.Print($"🔐 Contraseña cambiada exitosamente para: {_currentUser.Username}");
         return new AuthResult(true, "Contraseña cambiada exitosamente");
@@ -154,7 +163,7 @@ public static class AuthService
         bool updated = _currentUser.UpdateHighScore(newScore);
         if (updated)
         {
-            SaveUser(_currentUser);
+            SaveUsers();
             GD.Print($"🏆 Nuevo record para {_currentUser.Username}: {newScore}");
         }
         return updated;
@@ -176,8 +185,15 @@ public static class AuthService
         var passwordHash = PasswordService.HashPassword(password);
         var newUser = new User(username, passwordHash);
 
+        // Añadir a la lista y mantener máximo 3 por último acceso
+        _users.Add(newUser);
+        _users = _users
+            .OrderByDescending(u => u.LastLogin)
+            .Take(3)
+            .ToList();
+
         _currentUser = newUser;
-        SaveUser(_currentUser);
+        SaveUsers();
 
         GD.Print($"🆕 Nuevo usuario creado: {username}");
         return new AuthResult(true, "Usuario creado exitosamente", newUser);
@@ -186,66 +202,40 @@ public static class AuthService
     /// <summary>
     /// Carga los datos del usuario desde archivo
     /// </summary>
+    // Deprecated: mantener para compatibilidad, pero usar LoadUsers
     private static User LoadUser()
     {
-        try
-        {
-            if (!FileAccess.FileExists(UserDataFile))
-            {
-                return null;
-            }
-
-            using var file = FileAccess.Open(UserDataFile, FileAccess.ModeFlags.Read);
-            if (file == null)
-            {
-                GD.PrintErr($"Error al abrir archivo de usuario: {FileAccess.GetOpenError()}");
-                return null;
-            }
-
-            var jsonString = file.GetAsText();
-            if (string.IsNullOrEmpty(jsonString))
-            {
-                return null;
-            }
-
-            var json = Json.ParseString(jsonString);
-            if (json.VariantType != Variant.Type.Dictionary)
-            {
-                return null;
-            }
-
-            var userDict = json.AsGodotDictionary();
-            return DeserializeUser(userDict);
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Error cargando usuario: {e.Message}");
-            return null;
-        }
+        LoadUsers();
+        return _users.FirstOrDefault();
     }
 
     /// <summary>
     /// Guarda los datos del usuario en archivo
     /// </summary>
-    private static void SaveUser(User user)
+    // Guardar lista de usuarios
+    private static void SaveUsers()
     {
         try
         {
             using var file = FileAccess.Open(UserDataFile, FileAccess.ModeFlags.Write);
             if (file == null)
             {
-                GD.PrintErr($"Error al crear archivo de usuario: {FileAccess.GetOpenError()}");
+                GD.PrintErr($"Error al crear archivo de usuarios: {FileAccess.GetOpenError()}");
                 return;
             }
 
-            var userDict = SerializeUser(user);
-            var jsonString = Json.Stringify(userDict);
+            var array = new Godot.Collections.Array();
+            foreach (var u in _users)
+            {
+                array.Add(SerializeUser(u));
+            }
+            var jsonString = Json.Stringify(array);
             file.StoreString(jsonString);
             file.Flush();
         }
         catch (Exception e)
         {
-            GD.PrintErr($"Error guardando usuario: {e.Message}");
+            GD.PrintErr($"Error guardando usuarios: {e.Message}");
         }
     }
 
@@ -309,6 +299,69 @@ public static class AuthService
         }
 
         return user;
+    }
+
+    // Cargar lista de usuarios desde JSON (array)
+    private static void LoadUsers()
+    {
+        try
+        {
+            _users.Clear();
+            if (!FileAccess.FileExists(UserDataFile))
+            {
+                return;
+            }
+
+            using var file = FileAccess.Open(UserDataFile, FileAccess.ModeFlags.Read);
+            if (file == null)
+            {
+                GD.PrintErr($"Error al abrir archivo de usuarios: {FileAccess.GetOpenError()}");
+                return;
+            }
+
+            var jsonString = file.GetAsText();
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return;
+            }
+
+            var json = Json.ParseString(jsonString);
+            if (json.VariantType == Variant.Type.Array)
+            {
+                var arr = json.AsGodotArray();
+                foreach (var item in arr)
+                {
+                    var dict = item.AsGodotDictionary();
+                    var user = DeserializeUser(dict);
+                    _users.Add(user);
+                }
+            }
+            else if (json.VariantType == Variant.Type.Dictionary)
+            {
+                // Compatibilidad con formato antiguo de un solo usuario
+                var dict = json.AsGodotDictionary();
+                var user = DeserializeUser(dict);
+                _users.Add(user);
+            }
+
+            // Mantener máximo 3
+            _users = _users
+                .OrderByDescending(u => u.LastLogin)
+                .Take(3)
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Error cargando usuarios: {e.Message}");
+            _users.Clear();
+        }
+    }
+
+    // Listar usuarios guardados (ordenados por último acceso)
+    public static System.Collections.Generic.IEnumerable<User> GetSavedUsers()
+    {
+        LoadUsers();
+        return _users.OrderByDescending(u => u.LastLogin);
     }
 
     /// <summary>

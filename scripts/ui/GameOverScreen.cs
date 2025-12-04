@@ -13,6 +13,7 @@ public partial class GameOverScreen : Control, IInitializable
 
 	public void Initialize()
 	{
+		//hola
 		_scoreLabel = GetNode<Label>("Panel/Score");
 		_highScoreLabel = GetNode<Label>("Panel/HighScore");
 		
