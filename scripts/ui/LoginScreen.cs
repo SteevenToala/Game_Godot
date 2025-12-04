@@ -29,6 +29,7 @@ public partial class LoginScreen : Control, IInitializable
 	// Lista de usuarios guardados (Top 3)
 	private VBoxContainer _savedUsersList;
 	private Control _savedUsersSection;
+	private Button _toggleScoresButton;
 
 	public override void _Ready()
 	{
@@ -89,10 +90,35 @@ public partial class LoginScreen : Control, IInitializable
 		titleLabel.AddThemeColorOverride("font_outline_color", ColorPalette.Accent);
 		panelStack.AddChild(titleLabel);
 
-		// --- SECCIÓN: TOP 3 USUARIOS GUARDADOS (primero) ---
+		// --- SECCIÓN DE LOGIN (debajo) ---
+		var loginContainer = new VBoxContainer();
+		loginContainer.Size = new Vector2(404, 230);
+		loginContainer.Alignment = BoxContainer.AlignmentMode.Center;
+		panelStack.AddChild(loginContainer);
+
+
+		// --- Botón "Puntajes" y sección Top-3 (debajo del formulario) ---
+		var scoresToggleContainer = new VBoxContainer();
+		scoresToggleContainer.Size = new Vector2(404, 48);
+		scoresToggleContainer.Alignment = BoxContainer.AlignmentMode.Center;
+		panelStack.AddChild(scoresToggleContainer);
+
+		_toggleScoresButton = new Button();
+		_toggleScoresButton.Text = "Puntajes";
+		_toggleScoresButton.Size = new Vector2(404, 40);
+		var toggleNormal = new StyleBoxFlat(){ BgColor = ColorPalette.Button };
+		toggleNormal.CornerRadiusTopLeft = 8;
+		toggleNormal.CornerRadiusTopRight = 8;
+		toggleNormal.CornerRadiusBottomLeft = 8;
+		toggleNormal.CornerRadiusBottomRight = 8;
+		_toggleScoresButton.AddThemeStyleboxOverride("normal", toggleNormal);
+		_toggleScoresButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		scoresToggleContainer.AddChild(_toggleScoresButton);
+
 		_savedUsersSection = new VBoxContainer();
-		(_savedUsersSection as VBoxContainer).Size = new Vector2(404, 180);
+		(_savedUsersSection as VBoxContainer).Size = new Vector2(404, 0);
 		(_savedUsersSection as VBoxContainer).Alignment = BoxContainer.AlignmentMode.Center;
+		_savedUsersSection.Visible = false; // Oculto por defecto
 		panelStack.AddChild(_savedUsersSection);
 
 		var savedTitle = new Label();
@@ -105,12 +131,6 @@ public partial class LoginScreen : Control, IInitializable
 		_savedUsersList = new VBoxContainer();
 		_savedUsersList.AddThemeConstantOverride("separation", 8);
 		_savedUsersSection.AddChild(_savedUsersList);
-
-		// --- SECCIÓN DE LOGIN (debajo) ---
-		var loginContainer = new VBoxContainer();
-		loginContainer.Size = new Vector2(404, 230);
-		loginContainer.Alignment = BoxContainer.AlignmentMode.Center;
-		panelStack.AddChild(loginContainer);
 
 		// Campo de usuario
 		var usernameLabel = new Label();
@@ -329,6 +349,7 @@ public partial class LoginScreen : Control, IInitializable
 	{
 		_loginButton.Pressed += OnLoginButtonPressed;
 		_createButton.Pressed += OnCreateButtonPressed;
+		_toggleScoresButton.Pressed += OnToggleScoresPressed;
 		_changePasswordMenuButton.Pressed += OnChangePasswordMenuPressed;
 		_logoutButton.Pressed += OnLogoutButtonPressed;
 		_changePasswordButton.Pressed += OnChangePasswordButtonPressed;
@@ -473,8 +494,9 @@ public partial class LoginScreen : Control, IInitializable
 		_changePasswordMenuButton.Visible = isLoggedIn;
 		_logoutButton.Visible = isLoggedIn;
 
-		// Mostrar lista de usuarios guardados solo cuando NO está logueado
-		_savedUsersSection.Visible = !isLoggedIn;
+		// Mostrar botón de puntajes solo cuando NO está logueado
+		_toggleScoresButton.Visible = !isLoggedIn;
+		// La sección se renderiza si está oculto el login
 		if (!isLoggedIn)
 		{
 			RenderSavedUsersTop3();
@@ -484,6 +506,15 @@ public partial class LoginScreen : Control, IInitializable
 		{
 			var user = AuthService.CurrentUser;
 			_userInfoLabel.Text = $"👤 Usuario: {user.Username}\n🏆 Record: {user.HighScore}\n📅 Último acceso: {user.LastLogin:yyyy-MM-dd HH:mm}";
+		}
+	}
+
+	private void OnToggleScoresPressed()
+	{
+		_savedUsersSection.Visible = !_savedUsersSection.Visible;
+		if (_savedUsersSection.Visible)
+		{
+			RenderSavedUsersTop3();
 		}
 	}
 
