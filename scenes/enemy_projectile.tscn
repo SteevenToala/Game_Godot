@@ -1,11 +1,11 @@
 [gd_scene load_steps=5 format=3 uid="uid://c1l5av2w8bdpi"]
 
-[ext_resource type="Texture2D" uid="uid://ctsclke41s2uk" path="res://textures/Lasers/laserRed11.png" id="1_e8ik0"]
 [ext_resource type="Script" uid="uid://b68bnv0tt8dxv" path="res://scripts/entities/EnemyProjectile.cs" id="1_main"]
 [ext_resource type="Script" uid="uid://cp8d53uwuo0l8" path="res://scripts/components/Movement.cs" id="2_j7vux"]
+[ext_resource type="Texture2D" uid="uid://bk8eajlu6vwq2" path="res://textures/Lasers/laserRed08.png" id="2_wtqwx"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wtqwx"]
-radius = 45.0444
+radius = 32.0
 
 [node name="EnemyProjectile" type="Area2D"]
 script = ExtResource("1_main")
@@ -15,7 +15,8 @@ position = Vector2(0, -1)
 shape = SubResource("CircleShape2D_wtqwx")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_e8ik0")
+scale = Vector2(0.826087, 0.82608694)
+texture = ExtResource("2_wtqwx")
 
 [node name="Movement" type="Node" parent="."]
 script = ExtResource("2_j7vux")

@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://dw63wresywefv"]
 
 [ext_resource type="Script" uid="uid://b7esouaboki5q" path="res://scripts/entities/Player.cs" id="1_8n6if"]
-[ext_resource type="Texture2D" uid="uid://bmo54xpjn46jk" path="res://textures/playerShip1_green.png" id="1_a5v6f"]
+[ext_resource type="Texture2D" uid="uid://du1d06uhcm5fj" path="res://textures/Player-red.png" id="2_dqkch"]
 [ext_resource type="Script" uid="uid://b62nkck1cai04" path="res://scripts/components/Health.cs" id="3_dqkch"]
 [ext_resource type="Script" uid="uid://cp8d53uwuo0l8" path="res://scripts/components/Movement.cs" id="4_qlg0r"]
 
@@ -11,10 +11,12 @@ motion_mode = 1
 script = ExtResource("1_8n6if")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("1_a5v6f")
+position = Vector2(0, -4)
+scale = Vector2(1.03125, 1.0312501)
+texture = ExtResource("2_dqkch")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
-polygon = PackedVector2Array(-46, 25, -50, -7, -45, -7, -36, 0, -12, -13, -9, -38, 9, -38, 13, -13, 36, 0, 44, -7, 50, -7, 47, 26, 40, 26, 16, 28, 8, 38, -8, 38, -15, 28, -37, 24)
+polygon = PackedVector2Array(-61, 39, -50, -7, -45, -7, -36, 0, -12, -13, -9, -38, 9, -38, 13, -13, 36, 0, 44, -7, 50, -7, 62, 40, 40, 26, 16, 28, 8, 38, -8, 38, -15, 28, -37, 24)
 
 [node name="Muzzle" type="Marker2D" parent="."]
 position = Vector2(0, -48)

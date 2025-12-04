@@ -18,5 +18,3 @@ res://scripts/managers/SpawnManager.cs
 res://scripts/services/AudioService.cs
 res://scripts/managers/GameManager.cs
 res://scripts/entities/Laser.cs
-res://scenes/game_over_screen.tscn
-res://scenes/hud.tscn

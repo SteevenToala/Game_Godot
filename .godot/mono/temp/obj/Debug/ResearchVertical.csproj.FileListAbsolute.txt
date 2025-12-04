@@ -66,6 +66,40 @@ D:\Patrones\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.g
 D:\Patrones\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.pdb
 D:\Patrones\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.genruntimeconfig.cache
 D:\Patrones\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ref\ResearchVertical.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.deps.json
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.runtimeconfig.json
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.pdb
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\GodotSharp.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\GodotSharpEditor.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.AssemblyReference.cache
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfoInputs.cache
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfo.cs
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.CoreCompileInputs.cache
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\Research.CC68AF1C.Up2Date
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\refint\ResearchVertical.dll
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.pdb
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.genruntimeconfig.cache
+C:\Users\adri0\3D Objects\JUEGOS C#\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ref\ResearchVertical.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.deps.json
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.runtimeconfig.json
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.pdb
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\GodotSharp.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\GodotSharpEditor.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.AssemblyReference.cache
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfoInputs.cache
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfo.cs
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.CoreCompileInputs.cache
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\Research.CC68AF1C.Up2Date
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\refint\ResearchVertical.dll
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.pdb
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ResearchVertical.genruntimeconfig.cache
+C:\Users\adri0\OneDrive\Documentos\godot-vertical-shooter-demo-main\.godot\mono\temp\obj\Debug\ref\ResearchVertical.dll
 C:\Users\steev\Downloads\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.deps.json
 C:\Users\steev\Downloads\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.runtimeconfig.json
 C:\Users\steev\Downloads\godot-vertical-shooter-demo-main\godot-vertical-shooter-demo-main\.godot\mono\temp\bin\Debug\ResearchVertical.dll

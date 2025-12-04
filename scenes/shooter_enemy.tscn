@@ -1,8 +1,8 @@
 [gd_scene load_steps=7 format=3 uid="uid://d2r6mukd5a231"]
 
 [ext_resource type="Script" uid="uid://bne8ifmgdhchq" path="res://scripts/entities/ShooterEnemy.cs" id="1_kf3pt"]
-[ext_resource type="Texture2D" uid="uid://crb5glsnoyo31" path="res://textures/ufoRed.png" id="2_mmbl8"]
 [ext_resource type="PackedScene" uid="uid://c1l5av2w8bdpi" path="res://scenes/enemy_projectile.tscn" id="2_projectile"]
+[ext_resource type="Texture2D" uid="uid://7rxt64hkkud0" path="res://textures/Enemy_4_C_Small_NoLight.png" id="3_mmbl8"]
 [ext_resource type="Script" uid="uid://b62nkck1cai04" path="res://scripts/components/Health.cs" id="3_u66n6"]
 [ext_resource type="Script" uid="uid://cp8d53uwuo0l8" path="res://scripts/components/Movement.cs" id="4_4l6l4"]
 
@@ -16,7 +16,7 @@ ProjectileScene = ExtResource("2_projectile")
 shape = SubResource("RectangleShape2D_heyd6")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_mmbl8")
+texture = ExtResource("3_mmbl8")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("3_u66n6")
