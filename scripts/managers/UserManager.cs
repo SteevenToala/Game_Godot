@@ -27,20 +27,9 @@ public partial class UserManager : Node, IInitializable
 		// CAMBIO: Siempre mostrar la pantalla de login primero
 		ShowLoginScreen();
 		
-		// Verificar si hay datos de usuario guardados para pre-llenar
-		var savedUser = AuthService.LoadUserData();
-		if (savedUser != null)
-		{
-			GD.Print($"📋 Datos de usuario encontrados: {savedUser.Username} - Pre-llenando login");
-			if (_loginScreen != null)
-			{
-				_loginScreen.PreFillCredentials(savedUser.Username);
-			}
-		}
-		else
-		{
-			GD.Print("📝 No hay datos de usuario - Listo para crear nueva cuenta");
-		}
+		// CAMBIO: Con múltiples usuarios, no pre-llenamos datos
+		// Los usuarios deben ingresar su usuario manualmente
+		GD.Print("📋 Sistema de múltiples usuarios activo - Esperando credenciales del usuario");
 	}
 
 	private void CreateLoginScreen()

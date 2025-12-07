@@ -1,4 +1,8 @@
-res://scripts/ui/LoginScreen.cs
+res://scripts/utils/UserTestScript.cs
+res://scripts/services/AuthService.cs
+res://scripts/services/UserDatabaseService.cs
+res://scripts/factories/EnemyFactory.cs
+res://scripts/services/interfaces/IUserLockService.cs
 res://scripts/ui/GameOverScreen.cs
 res://scripts/managers/ScoreManager.cs
 res://scripts/entities/Enemy.cs
@@ -6,8 +10,8 @@ res://scripts/components/Health.cs
 res://scripts/entities/MeteoroEnemy.cs
 res://scripts/entities/ShooterEnemy.cs
 res://scripts/commands/CommandInvoker.cs
+res://scripts/ui/LoginScreen.cs
 res://scripts/components/Movement.cs
-res://scripts/utils/UserTestScript.cs
 res://scripts/ui/Hud.cs
 res://scripts/entities/Player.cs
 res://scripts/managers/UserManager.cs
@@ -18,6 +22,4 @@ res://scripts/managers/SpawnManager.cs
 res://scripts/services/AudioService.cs
 res://scripts/managers/GameManager.cs
 res://scripts/entities/Laser.cs
-res://scenes/enemy_projectile.tscn
-res://scripts/utils/ColorPalette.cs
 res://scenes/game.tscn

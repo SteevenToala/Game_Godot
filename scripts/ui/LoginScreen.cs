@@ -11,6 +11,8 @@ public partial class LoginScreen : Control, IInitializable
 	private Button _loginButton;
 	private Button _createButton;
 	private Label _statusLabel;
+	private Button _togglePasswordButton; // Botón para mostrar/ocultar contraseña
+	private Label _attemptsLabel; // Muestra intentos restantes
 
 	// Elementos UI para cambio de contraseña
 	private Control _changePasswordPanel;
@@ -25,6 +27,15 @@ public partial class LoginScreen : Control, IInitializable
 	private Button _changePasswordMenuButton;
 	private Button _logoutButton;
 	private Label _userInfoLabel;
+	private Button _manageUsersButton; // Botón para gestionar usuarios bloqueados
+	private Button _manageUsersLoginButton; // Botón para gestionar desde login (requiere credenciales)
+
+	// Panel de gestión de usuarios
+	private Control _manageUsersPanel;
+	private ItemList _lockedUsersList;
+	private Button _unlockUserButton;
+	private Button _closeManageUsersButton;
+	private Label _manageUsersStatus;
 
 	public override void _Ready()
 	{
@@ -79,13 +90,33 @@ public partial class LoginScreen : Control, IInitializable
 		passwordLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
 		loginContainer.AddChild(passwordLabel);
 
+		// Contenedor horizontal para contraseña + botón toggle
+		var passwordContainer = new HBoxContainer();
+		passwordContainer.Size = new Vector2(340, 30);
+		loginContainer.AddChild(passwordContainer);
+
 		_passwordField = new LineEdit();
 		_passwordField.PlaceholderText = "Ingresa tu contraseña";
 		_passwordField.Secret = true;
-		_passwordField.Size = new Vector2(340, 30);
+		_passwordField.Size = new Vector2(300, 30);
 		_passwordField.AddThemeColorOverride("font_color", ColorPalette.Text);
 		_passwordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		loginContainer.AddChild(_passwordField);
+		passwordContainer.AddChild(_passwordField);
+
+		// Botón para mostrar/ocultar contraseña
+		_togglePasswordButton = new Button();
+		_togglePasswordButton.Text = "👁️";
+		_togglePasswordButton.Size = new Vector2(40, 30);
+		_togglePasswordButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_togglePasswordButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_togglePasswordButton.Pressed += OnTogglePasswordVisibility;
+		passwordContainer.AddChild(_togglePasswordButton);
+
+		// Label de intentos restantes
+		_attemptsLabel = new Label();
+		_attemptsLabel.Text = "";
+		_attemptsLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+		loginContainer.AddChild(_attemptsLabel);
 
 		// Botones: Login + Crear cuenta
 		var buttons = new HBoxContainer();
@@ -114,6 +145,14 @@ public partial class LoginScreen : Control, IInitializable
 		_statusLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
 		loginContainer.AddChild(_statusLabel);
 
+		// Botón de gestión de usuarios (en pantalla de login)
+		_manageUsersLoginButton = new Button();
+		_manageUsersLoginButton.Text = "🔑 GESTIONAR USUARIOS";
+		_manageUsersLoginButton.Size = new Vector2(340, 30);
+		_manageUsersLoginButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_manageUsersLoginButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		loginContainer.AddChild(_manageUsersLoginButton);
+
 		// --- SECCIÓN DE USUARIO LOGUEADO ---
 		var userContainer = new VBoxContainer();
 		userContainer.Position = new Vector2(20, 280);
@@ -132,6 +171,13 @@ public partial class LoginScreen : Control, IInitializable
 		_changePasswordMenuButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
 		_changePasswordMenuButton.AddThemeColorOverride("font_color", ColorPalette.Text);
 		userContainer.AddChild(_changePasswordMenuButton);
+
+		_manageUsersButton = new Button();
+		// _manageUsersButton.Text = "GESTIONAR USUARIOS";
+		_manageUsersButton.Size = new Vector2(340, 30);
+		_manageUsersButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_manageUsersButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		userContainer.AddChild(_manageUsersButton);
 
 		_logoutButton = new Button();
 		_logoutButton.Text = "CERRAR SESIÓN";
@@ -222,16 +268,74 @@ public partial class LoginScreen : Control, IInitializable
 		_changePasswordStatus.Size = new Vector2(300, 40);
 		_changePasswordStatus.AddThemeColorOverride("font_color", ColorPalette.Text);
 		changePassContainer.AddChild(_changePasswordStatus);
+
+		// --- PANEL DE GESTIÓN DE USUARIOS BLOQUEADOS ---
+		_manageUsersPanel = new Panel();
+		_manageUsersPanel.Position = new Vector2(200, 150);
+		_manageUsersPanel.Size = new Vector2(500, 400);
+		_manageUsersPanel.Visible = false;
+		_manageUsersPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
+		AddChild(_manageUsersPanel);
+
+		var manageTitle = new Label();
+		manageTitle.Text = "GESTIONAR USUARIOS BLOQUEADOS";
+		manageTitle.Position = new Vector2(20, 20);
+		manageTitle.AddThemeColorOverride("font_color", ColorPalette.Text);
+		_manageUsersPanel.AddChild(manageTitle);
+
+		var manageContainer = new VBoxContainer();
+		manageContainer.Position = new Vector2(20, 50);
+		manageContainer.CustomMinimumSize = new Vector2(460, 330);
+		_manageUsersPanel.AddChild(manageContainer);
+
+		var infoLabel = new Label();
+		infoLabel.Text = "Usuarios bloqueados:";
+		infoLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
+		manageContainer.AddChild(infoLabel);
+
+		_lockedUsersList = new ItemList();
+		_lockedUsersList.CustomMinimumSize = new Vector2(460, 200);
+		_lockedUsersList.AddThemeColorOverride("font_color", ColorPalette.Text);
+		manageContainer.AddChild(_lockedUsersList);
+
+		_manageUsersStatus = new Label();
+		_manageUsersStatus.Text = "";
+		_manageUsersStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+		_manageUsersStatus.CustomMinimumSize = new Vector2(460, 40);
+		_manageUsersStatus.AddThemeColorOverride("font_color", ColorPalette.Text);
+		manageContainer.AddChild(_manageUsersStatus);
+
+		var manageButtonContainer = new HBoxContainer();
+		manageButtonContainer.CustomMinimumSize = new Vector2(460, 40);
+		manageContainer.AddChild(manageButtonContainer);
+
+		_unlockUserButton = new Button();
+		_unlockUserButton.Text = "DESBLOQUEAR SELECCIONADO";
+		_unlockUserButton.Size = new Vector2(300, 40);
+		_unlockUserButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_unlockUserButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		manageButtonContainer.AddChild(_unlockUserButton);
+
+		_closeManageUsersButton = new Button();
+		_closeManageUsersButton.Text = "CERRAR";
+		_closeManageUsersButton.Size = new Vector2(140, 40);
+		_closeManageUsersButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
+		_closeManageUsersButton.AddThemeColorOverride("font_color", ColorPalette.Text);
+		manageButtonContainer.AddChild(_closeManageUsersButton);
 	}
 
 	private void ConnectSignals()
 	{
 		_loginButton.Pressed += OnLoginButtonPressed;
 		_createButton.Pressed += OnCreateButtonPressed;
+		_manageUsersLoginButton.Pressed += OnManageUsersLoginButtonPressed;
 		_changePasswordMenuButton.Pressed += OnChangePasswordMenuPressed;
+		_manageUsersButton.Pressed += OnManageUsersButtonPressed;
 		_logoutButton.Pressed += OnLogoutButtonPressed;
 		_changePasswordButton.Pressed += OnChangePasswordButtonPressed;
 		_cancelChangePasswordButton.Pressed += OnCancelChangePasswordPressed;
+		_unlockUserButton.Pressed += OnUnlockUserButtonPressed;
+		_closeManageUsersButton.Pressed += OnCloseManageUsersPressed;
 
 		// Enter para hacer login
 		_passwordField.TextSubmitted += (_) => OnLoginButtonPressed();
@@ -254,6 +358,7 @@ public partial class LoginScreen : Control, IInitializable
 		if (result.Success)
 		{
 			ShowStatus(result.Message, false);
+			_attemptsLabel.Text = ""; // Limpiar label de intentos
 			UpdateUIState();
 
 			// Emitir señal según sea creación o login
@@ -269,6 +374,7 @@ public partial class LoginScreen : Control, IInitializable
 		else
 		{
 			ShowStatus(result.Message, true);
+			UpdateAttemptsLabel(username);
 		}
 
 		// Limpiar campos
@@ -365,11 +471,15 @@ public partial class LoginScreen : Control, IInitializable
 		// Mostrar/ocultar secciones según estado de login
 		_usernameField.Visible = !isLoggedIn;
 		_passwordField.Visible = !isLoggedIn;
+		_togglePasswordButton.Visible = !isLoggedIn;
 		_loginButton.Visible = !isLoggedIn;
 		_createButton.Visible = !isLoggedIn;
+		_attemptsLabel.Visible = !isLoggedIn;
+		_manageUsersLoginButton.Visible = !isLoggedIn;
 
 		_userInfoLabel.Visible = isLoggedIn;
 		_changePasswordMenuButton.Visible = isLoggedIn;
+		_manageUsersButton.Visible = isLoggedIn;
 		_logoutButton.Visible = isLoggedIn;
 
 		if (isLoggedIn)
@@ -411,5 +521,151 @@ public partial class LoginScreen : Control, IInitializable
 			_passwordField.Text = "";
 			_passwordField.GrabFocus(); // Poner foco en contraseña
 		}
+	}
+
+	// ========== NUEVOS MÉTODOS PARA GESTIÓN DE BLOQUEOS ==========
+
+	/// <summary>
+	/// Abre gestión de usuarios desde la pantalla de login (requiere credenciales admin)
+	/// </summary>
+	private void OnManageUsersLoginButtonPressed()
+	{
+		var username = _usernameField.Text.Trim();
+		var password = _passwordField.Text;
+
+		if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+		{
+			ShowStatus("Por favor ingresa credenciales para acceder a gestión", true);
+			return;
+		}
+
+		// Validar credenciales (sin autenticarse)
+		var result = AuthService.Login(username, password);
+
+		if (!result.Success)
+		{
+			ShowStatus("Credenciales inválidas. " + result.Message, true);
+			UpdateAttemptsLabel(username);
+			_passwordField.Text = "";
+			return;
+		}
+
+		// Credenciales válidas - abrir panel de gestión
+		ShowStatus("✅ Credenciales válidas", false);
+		_manageUsersPanel.Visible = true;
+		RefreshLockedUsersList();
+		_manageUsersStatus.Text = "Sesión de gestión activa";
+
+		// Limpiar campos para seguridad
+		_usernameField.Text = "";
+		_passwordField.Text = "";
+	}
+
+	/// <summary>
+	/// Muestra/oculta la contraseña
+	/// </summary>
+	private void OnTogglePasswordVisibility()
+	{
+		_passwordField.Secret = !_passwordField.Secret;
+		_togglePasswordButton.Text = _passwordField.Secret ? "👁️" : "👁️‍🗨️";
+	}
+
+	/// <summary>
+	/// Actualiza el label de intentos restantes
+	/// </summary>
+	private void UpdateAttemptsLabel(string username)
+	{
+		var lockService = AuthService.GetLockService();
+		int attempts = lockService.GetFailedAttempts(username);
+		int maxAttempts = lockService.GetMaxFailedAttempts();
+		int remaining = maxAttempts - attempts;
+
+		if (lockService.IsUserLocked(username))
+		{
+			_attemptsLabel.Text = "❌ Usuario bloqueado tras 3 intentos fallidos";
+			_attemptsLabel.Modulate = Colors.Red;
+		}
+		else if (remaining > 0)
+		{
+			_attemptsLabel.Text = $"⚠️ Intentos restantes: {remaining}";
+			_attemptsLabel.Modulate = Colors.Yellow;
+		}
+		else
+		{
+			_attemptsLabel.Text = "";
+		}
+	}
+
+	/// <summary>
+	/// Abre el panel de gestión de usuarios bloqueados
+	/// </summary>
+	private void OnManageUsersButtonPressed()
+	{
+		_manageUsersPanel.Visible = true;
+		RefreshLockedUsersList();
+		_manageUsersStatus.Text = "";
+	}
+
+	/// <summary>
+	/// Cierra el panel de gestión de usuarios
+	/// </summary>
+	private void OnCloseManageUsersPressed()
+	{
+		_manageUsersPanel.Visible = false;
+	}
+
+	/// <summary>
+	/// Recarga la lista de usuarios bloqueados
+	/// </summary>
+	private void RefreshLockedUsersList()
+	{
+		_lockedUsersList.Clear();
+		var lockedUsers = AuthService.GetLockedUsers();
+
+		if (lockedUsers.Count == 0)
+		{
+			_lockedUsersList.AddItem("(No hay usuarios bloqueados)");
+		}
+		else
+		{
+			foreach (var username in lockedUsers)
+			{
+				_lockedUsersList.AddItem($"🔒 {username}");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Desbloquea el usuario seleccionado
+	/// </summary>
+	private void OnUnlockUserButtonPressed()
+	{
+		int[] selectedIndices = _lockedUsersList.GetSelectedItems();
+		if (selectedIndices.Length == 0)
+		{
+			ShowManageUsersStatus("Por favor selecciona un usuario", true);
+			return;
+		}
+
+		var lockedUsers = AuthService.GetLockedUsers();
+		if (selectedIndices[0] >= lockedUsers.Count)
+		{
+			ShowManageUsersStatus("Selección inválida", true);
+			return;
+		}
+
+		string username = lockedUsers[selectedIndices[0]];
+		AuthService.UnlockUser(username);
+		ShowManageUsersStatus($"✅ Usuario '{username}' desbloqueado", false);
+		RefreshLockedUsersList();
+	}
+
+	/// <summary>
+	/// Muestra estado en el panel de gestión de usuarios
+	/// </summary>
+	private void ShowManageUsersStatus(string message, bool isError)
+	{
+		_manageUsersStatus.Text = message;
+		_manageUsersStatus.Modulate = isError ? Colors.Red : Colors.Green;
 	}
 }

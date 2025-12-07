@@ -88,23 +88,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\steev\\.nuget\\packages\\": {},
+    "C:\\Users\\adri0\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Game\\ResearchVertical.csproj",
+      "projectUniqueName": "C:\\Users\\adri0\\OneDrive\\Documentos\\Proyecto Patrones\\Game_Godot\\ResearchVertical.csproj",
       "projectName": "ResearchVertical",
-      "projectPath": "C:\\Game\\ResearchVertical.csproj",
-      "packagesPath": "C:\\Users\\steev\\.nuget\\packages\\",
-      "outputPath": "C:\\Game\\.godot\\mono\\temp\\obj\\",
+      "projectPath": "C:\\Users\\adri0\\OneDrive\\Documentos\\Proyecto Patrones\\Game_Godot\\ResearchVertical.csproj",
+      "packagesPath": "C:\\Users\\adri0\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\adri0\\OneDrive\\Documentos\\Proyecto Patrones\\Game_Godot\\.godot\\mono\\temp\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\steev\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\adri0\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -169,7 +169,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
