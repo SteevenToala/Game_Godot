@@ -2,25 +2,51 @@ using Godot;
 using System;
 
 /// <summary>
-/// Servicio de autenticación para manejar los usuarios del juego
-/// Estoy usando inyección de dependencias
-/// Integrado con UserDatabaseService para múltiples usuarios
+/// Servicio de autenticación - Solo maneja login, registro y cambio de contraseña
+/// Principio SOLID: SRP (Single Responsibility - solo autenticación)
+/// Principio SOLID: DIP (Dependency Inversion - usa servicios especializados)
 /// </summary>
 public static class AuthService
 {
-	private static User _currentUser = null;
-	private static IUserLockService _lockService = new UserLockService();
-	private static UserDatabaseService _userDatabase = new UserDatabaseService();
+	private static IUserLockService _lockService;
+	private static UserService _userService;
+	private static UserScoreService _scoreService;
+	
+	// Dependencias compartidas
+	private static UserDatabaseService _userDatabase;
+	private static bool _initialized = false;
 
 	/// <summary>
-	/// Usuario actualmente autenticado
+	/// Usuario actualmente autenticado (delegado a SessionService)
 	/// </summary>
-	public static User CurrentUser => _currentUser;
+	public static User CurrentUser => SessionService.CurrentUser;
 
 	/// <summary>
-	/// Indica si hay un usuario autenticado
+	/// Indica si hay un usuario autenticado (delegado a SessionService)
 	/// </summary>
-	public static bool IsLoggedIn => _currentUser != null;
+	public static bool IsLoggedIn => SessionService.IsLoggedIn;
+
+	/// <summary>
+	/// Inicializa AuthService y sus servicios dependientes
+	/// </summary>
+	public static void Initialize()
+	{
+		if (_initialized)
+			return;
+
+		// Inicializar dependencias compartidas
+		_userDatabase = new UserDatabaseService();
+		_lockService = new UserLockService();
+		
+		// Inicializar servicios especializados
+		_userService = new UserService(_userDatabase, _lockService);
+		_scoreService = new UserScoreService(_userDatabase);
+		
+		_initialized = true;
+		
+		GD.Print("🔧 AuthService inicializado");
+		GD.Print($"📊 Total de usuarios en base de datos: {_userService.GetUserCount()}");
+	}
 
 	/// <summary>
 	/// Intenta hacer login con las credenciales proporcionadas
@@ -28,6 +54,8 @@ public static class AuthService
 	/// </summary>
 	public static AuthResult Login(string username, string password)
 	{
+		EnsureInitialized();
+		
 		if (!PasswordService.IsValidUsername(username))
 		{
 			return new AuthResult(false, "Nombre de usuario inválido. Debe tener entre 3-20 caracteres alfanuméricos.");
@@ -45,12 +73,12 @@ public static class AuthService
 		}
 
 		// Buscar usuario en base de datos
-		var storedUser = _userDatabase.GetUser(username);
+		var storedUser = _userService.GetUser(username);
 
-		// Si no existe usuario, crear uno nuevo
+		// Si no existe usuario, crear uno nuevo (auto-registro)
 		if (storedUser == null)
 		{
-			return CreateNewUser(username, password);
+			return CreateNewUserAndLogin(username, password);
 		}
 
 		// Verificar credenciales
@@ -65,11 +93,12 @@ public static class AuthService
 		// Login exitoso - limpiar intentos fallidos
 		_lockService.ClearFailedAttempts(username);
 		storedUser.UpdateLastLogin();
-		_userDatabase.UpdateUser(storedUser);
-		_currentUser = storedUser;
+		_userService.UpdateUser(storedUser);
+		
+		// Iniciar sesión
+		SessionService.StartSession(storedUser);
 
-		GD.Print($"✅ Login exitoso: {_currentUser.Username}");
-		return new AuthResult(true, "Login exitoso", _currentUser);
+		return new AuthResult(true, "Login exitoso", storedUser);
 	}
 
 	/// <summary>
@@ -77,6 +106,8 @@ public static class AuthService
 	/// </summary>
 	public static AuthResult Register(string username, string password)
 	{
+		EnsureInitialized();
+		
 		if (!PasswordService.IsValidUsername(username))
 		{
 			return new AuthResult(false, "Nombre de usuario inválido. Debe tener entre 3-20 caracteres alfanuméricos.");
@@ -88,12 +119,12 @@ public static class AuthService
 		}
 
 		// Verificar si el usuario ya existe
-		if (_userDatabase.UserExists(username))
+		if (_userService.UserExists(username))
 		{
 			return new AuthResult(false, $"El usuario '{username}' ya existe. Usa otro nombre.");
 		}
 
-		var result = CreateNewUser(username, password);
+		var result = CreateNewUserAndLogin(username, password);
 		if (result.Success)
 		{
 			GD.Print($"🆕 Usuario registrado: {username}");
@@ -106,13 +137,17 @@ public static class AuthService
 	/// </summary>
 	public static AuthResult ChangePassword(string currentPassword, string newPassword)
 	{
-		if (!IsLoggedIn)
+		EnsureInitialized();
+		
+		if (!SessionService.IsLoggedIn)
 		{
 			return new AuthResult(false, "No hay usuario autenticado.");
 		}
 
+		var currentUser = SessionService.CurrentUser;
+
 		// Verificar contraseña actual
-		if (!PasswordService.VerifyPassword(currentPassword, _currentUser.PasswordHash))
+		if (!PasswordService.VerifyPassword(currentPassword, currentUser.PasswordHash))
 		{
 			return new AuthResult(false, "Contraseña actual incorrecta.");
 		}
@@ -126,16 +161,17 @@ public static class AuthService
 		var newPasswordHash = PasswordService.HashPassword(newPassword);
 
 		// Verificar que no sea la misma contraseña
-		if (_currentUser.IsPasswordReused(newPasswordHash))
+		if (currentUser.IsPasswordReused(newPasswordHash))
 		{
 			return new AuthResult(false, "No puedes usar una contraseña que ya has utilizado anteriormente.");
 		}
 
 		// Actualizar contraseña
-		_currentUser.UpdatePassword(newPasswordHash);
-		_userDatabase.UpdateUser(_currentUser);
+		currentUser.UpdatePassword(newPasswordHash);
+		_userService.UpdateUser(currentUser);
+		SessionService.RefreshUser(currentUser);
 
-		GD.Print($"🔐 Contraseña cambiada exitosamente para: {_currentUser.Username}");
+		GD.Print($"🔐 Contraseña cambiada exitosamente para: {currentUser.Username}");
 		return new AuthResult(true, "Contraseña cambiada exitosamente");
 	}
 
@@ -144,121 +180,116 @@ public static class AuthService
 	/// </summary>
 	public static void Logout()
 	{
-		if (_currentUser != null)
-		{
-			GD.Print($"👋 Logout: {_currentUser.Username}");
-			_currentUser = null;
-		}
+		SessionService.EndSession();
 	}
 
+	// ==================== DELEGACIÓN A SERVICIOS ESPECIALIZADOS ====================
+	// Los siguientes métodos delegan a los servicios apropiados para mantener compatibilidad
+
 	/// <summary>
-	/// Actualiza el puntaje del usuario actual
+	/// Actualiza el puntaje del usuario actual (delegado a UserScoreService)
 	/// </summary>
 	public static bool UpdateScore(uint newScore)
 	{
-		if (!IsLoggedIn)
+		if (!SessionService.IsLoggedIn)
 			return false;
 
-		bool updated = _currentUser.UpdateHighScore(newScore);
-		if (updated)
-		{
-			_userDatabase.UpdateUser(_currentUser);
-			GD.Print($"🏆 Nuevo record para {_currentUser.Username}: {newScore}");
-		}
-		return updated;
+		return _scoreService.UpdateScore(SessionService.CurrentUser, newScore);
 	}
 
 	/// <summary>
-	/// Obtiene el puntaje máximo del usuario actual
+	/// Obtiene el puntaje máximo del usuario actual (delegado a UserScoreService)
 	/// </summary>
 	public static uint GetHighScore()
 	{
-		return IsLoggedIn ? _currentUser.HighScore : 0;
+		return SessionService.IsLoggedIn ? SessionService.CurrentUser.HighScore : 0;
 	}
 
 	/// <summary>
-	/// Crea un nuevo usuario en la base de datos
-	/// </summary>
-	private static AuthResult CreateNewUser(string username, string password)
-	{
-		var passwordHash = PasswordService.HashPassword(password);
-		var newUser = new User(username, passwordHash);
-
-		_userDatabase.AddUser(newUser);
-		_currentUser = newUser;
-
-		GD.Print($"🆕 Nuevo usuario creado: {username}");
-		return new AuthResult(true, "Usuario creado exitosamente", newUser);
-	}
-	/// <summary>
-	/// Inicializa AuthService y carga la base de datos de usuarios
-	/// </summary>
-	public static void Initialize()
-	{
-		GD.Print("🔧 AuthService inicializado");
-		GD.Print($"📊 Total de usuarios en base de datos: {_userDatabase.GetAllUsernames().Count}");
-		
-		var allUsers = _userDatabase.GetAllUsernames();
-		if (allUsers.Contains("admin"))
-		{
-			GD.Print("✅ Usuario admin disponible");
-		}
-	}
-
-	/// <summary>
-	/// Carga los datos de un usuario específico sin activar la sesión
+	/// Carga los datos de un usuario específico (delegado a UserService)
 	/// </summary>
 	public static User LoadUserData(string username)
 	{
-		return _userDatabase.GetUser(username);
+		EnsureInitialized();
+		return _userService.GetUser(username);
 	}
 
 	/// <summary>
 	/// Obtiene el servicio de bloqueos de usuarios
-	/// Principio SOLID: DIP (Dependency Inversion Principle)
 	/// </summary>
 	public static IUserLockService GetLockService()
 	{
+		EnsureInitialized();
 		return _lockService;
 	}
 
 	/// <summary>
-	/// Desbloquea un usuario (solo con autenticación)
+	/// Desbloquea un usuario (delegado a UserService)
 	/// </summary>
 	public static bool UnlockUser(string username)
 	{
-		if (!IsLoggedIn)
+		if (!SessionService.IsLoggedIn)
 		{
 			GD.Print("⚠️ Debe iniciar sesión para desbloquear usuarios");
 			return false;
 		}
 
-		_lockService.UnlockUser(username);
+		_userService.UnlockUser(username);
 		return true;
 	}
 
 	/// <summary>
-	/// Obtiene la lista de usuarios bloqueados
+	/// Obtiene la lista de usuarios bloqueados (delegado a UserService)
 	/// </summary>
 	public static System.Collections.Generic.List<string> GetLockedUsers()
 	{
-		return _lockService.GetLockedUsers();
+		EnsureInitialized();
+		return _userService.GetLockedUsers();
 	}
 
 	/// <summary>
-	/// Obtiene todos los usuarios del sistema
+	/// Obtiene todos los usuarios del sistema (delegado a UserService)
 	/// </summary>
 	public static System.Collections.Generic.List<User> GetAllUsers()
 	{
-		return _userDatabase.GetAllUsers();
+		EnsureInitialized();
+		return _userService.GetAllUsers();
 	}
 
 	/// <summary>
-	/// Obtiene todos los nombres de usuarios del sistema
+	/// Obtiene todos los nombres de usuarios del sistema (delegado a UserService)
 	/// </summary>
 	public static System.Collections.Generic.List<string> GetAllUsernames()
 	{
-		return _userDatabase.GetAllUsernames();
+		EnsureInitialized();
+		return _userService.GetAllUsernames();
+	}
+
+	// ==================== MÉTODOS PRIVADOS ====================
+
+	/// <summary>
+	/// Crea un nuevo usuario y lo autentica automáticamente
+	/// </summary>
+	private static AuthResult CreateNewUserAndLogin(string username, string password)
+	{
+		var passwordHash = PasswordService.HashPassword(password);
+		var newUser = _userService.CreateUser(username, passwordHash);
+
+		// Iniciar sesión con el nuevo usuario
+		SessionService.StartSession(newUser);
+
+		return new AuthResult(true, "Usuario creado exitosamente", newUser);
+	}
+
+	/// <summary>
+	/// Asegura que el servicio esté inicializado
+	/// </summary>
+	private static void EnsureInitialized()
+	{
+		if (!_initialized)
+		{
+			Initialize();
+		}
 	}
 }
 
