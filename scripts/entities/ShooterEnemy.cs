@@ -103,7 +103,7 @@ public partial class ShooterEnemy : Enemy
 		}
 	}
 
-	protected override void OnDied()
+	public override void OnDied()
 	{
 		// Detener el timer de disparo
 		if (_shootTimer != null)

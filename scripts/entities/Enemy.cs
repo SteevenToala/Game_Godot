@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class Enemy : BaseEntity, IDamageable
+public partial class Enemy : BaseEntity
 {
 	[Export(PropertyHint.Range, "0,600,1,or_greater")]
 	public float Speed { get; set; } = Constants.DefaultEnemySpeed;
@@ -12,9 +12,6 @@ public partial class Enemy : BaseEntity, IDamageable
 	public uint Damage { get; set; } = Constants.DefaultEnemyDamage;
 
 	[Signal] public delegate void KilledEventHandler(Enemy enemy);
-
-	// HACER PÚBLICO EL COMPONENTE DE MOVIMIENTO PARA EL SISTEMA DE NIVELES
-	public Movement MovementComponent => _movementComponent;
 
 	public override void Initialize()
 	{
@@ -45,7 +42,7 @@ public partial class Enemy : BaseEntity, IDamageable
 		_movementComponent?.Move(delta);
 	}
 
-	protected override void OnDied()
+	public override void OnDied()
 	{
 		EmitSignal(SignalName.Killed, this);
 		base.OnDied();
@@ -59,12 +56,7 @@ public partial class Enemy : BaseEntity, IDamageable
 			{
 				player.TakeDamage((int)Damage);
 			}
-			QueueFree();
+			Destroy();
 		}
 	}
-	
-	// Implementación de IDamageable
-	public bool IsAlive => _healthComponent?.IsAlive ?? false;
-	public int CurrentHealth => _healthComponent?.CurrentHealth ?? 0;
-	public int MaxHealth => _healthComponent?.MaxHealth ?? 0;
 }

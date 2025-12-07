@@ -1,11 +1,21 @@
 using Godot;
 
-public abstract partial class BaseEntity : Area2D, IInitializable
+public abstract partial class BaseEntity : Area2D, IGameEntity
 {
 	protected Health _healthComponent;
 	public Movement _movementComponent;
 	
 	[Signal] public delegate void EntityDestroyedEventHandler(BaseEntity entity);
+	
+	// Implementación de IGameEntity
+	public Health HealthComponent => _healthComponent;
+	public Movement MovementComponent => _movementComponent;
+	public bool IsActive => !IsQueuedForDeletion();
+	
+	// Implementación de IDamageable (a través de IGameEntity)
+	public bool IsAlive => _healthComponent?.IsAlive ?? false;
+	public int CurrentHealth => _healthComponent?.CurrentHealth ?? 0;
+	public int MaxHealth => _healthComponent?.MaxHealth ?? 0;
 	
 	public virtual void Initialize()
 	{
@@ -37,14 +47,19 @@ public abstract partial class BaseEntity : Area2D, IInitializable
 		_healthComponent?.TakeDamage(damage);
 	}
 	
-	protected virtual void OnDied()
+	public virtual void OnDied()
 	{
 		EmitSignal(SignalName.EntityDestroyed, this);
+		Destroy();
+	}
+	
+	public virtual void Destroy()
+	{
 		QueueFree();
 	}
 	
 	public virtual void OnVisibleOnScreenExited()
 	{
-		QueueFree();
+		Destroy();
 	}
 }

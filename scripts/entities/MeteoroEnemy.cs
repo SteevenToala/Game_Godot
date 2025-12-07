@@ -33,7 +33,7 @@ public partial class MeteoroEnemy : Enemy
 		_movementComponent?.Move(delta);
 	}
 	
-	protected override void OnDied()
+	public override void OnDied()
 	{
 		// Efecto de sonido específico para meteoro
 		AudioService.Instance?.PlayExplosion();

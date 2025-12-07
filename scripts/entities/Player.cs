@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class Player : CharacterBody2D, IDamageable, IInitializable
+public partial class Player : CharacterBody2D, IGameEntity
 {
 	private Node2D _muzzle;
 	private PackedScene _laserScene;
@@ -25,7 +25,12 @@ public partial class Player : CharacterBody2D, IDamageable, IInitializable
 	[Signal] public delegate void LaserShotEventHandler(PackedScene laserScene, Vector2 location);
 	[Signal] public delegate void KilledEventHandler();
 
-	// Implementación de IDamageable
+	// Implementación de IGameEntity
+	public Health HealthComponent => _healthComponent;
+	public Movement MovementComponent => _movementComponent;
+	public bool IsActive => !IsQueuedForDeletion();
+	
+	// Implementación de IDamageable (a través de IGameEntity)
 	public bool IsAlive => _healthComponent?.IsAlive ?? false;
 	public int CurrentHealth => _healthComponent?.CurrentHealth ?? 0;
 	public int MaxHealth => _healthComponent?.MaxHealth ?? 0;
@@ -196,9 +201,14 @@ public partial class Player : CharacterBody2D, IDamageable, IInitializable
 		_healthComponent?.TakeDamage(damage);
 	}
 
-	private void OnDied()
+	public void OnDied()
 	{
 		EmitSignal(SignalName.Killed);
+		Destroy();
+	}
+	
+	public void Destroy()
+	{
 		QueueFree();
 	}
 	
