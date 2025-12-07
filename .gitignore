@@ -2,7 +2,7 @@
 .import/
 export.cfg
 export_presets.cfg
-*.godot/   # Godot 4.x project cache folders
+.godot/   # Godot 4.x project cache folders
 *.translation
 
 # Exported builds
