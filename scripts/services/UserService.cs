@@ -6,12 +6,12 @@ using System.Collections.Generic;
 /// Principio SOLID: SRP (Single Responsibility - solo gestiona datos de usuarios)
 /// Principio SOLID: DIP (Dependency Inversion - depende de interfaces)
 /// </summary>
-public class UserService
+public class UserService : IUserService
 {
-	private readonly UserDatabaseService _userDatabase;
+	private readonly IUserDatabaseService _userDatabase;
 	private readonly IUserLockService _lockService;
 
-	public UserService(UserDatabaseService userDatabase, IUserLockService lockService)
+	public UserService(IUserDatabaseService userDatabase, IUserLockService lockService)
 	{
 		_userDatabase = userDatabase;
 		_lockService = lockService;

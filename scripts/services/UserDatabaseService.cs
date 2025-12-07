@@ -6,8 +6,9 @@ using System.Collections.Generic;
 /// Servicio para gestionar múltiples usuarios del sistema
 /// Almacena información de todos los usuarios creados
 /// Principio SOLID: SRP (Single Responsibility - gestiona BD de usuarios)
+/// Principio SOLID: DIP (Dependency Inversion - implementa interfaz)
 /// </summary>
-public class UserDatabaseService
+public class UserDatabaseService : IUserDatabaseService
 {
 	private const string UsersDatabaseFile = "user://users_database.json";
 	private Dictionary<string, User> _users = new Dictionary<string, User>();

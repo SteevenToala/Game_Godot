@@ -3,12 +3,13 @@ using Godot;
 /// <summary>
 /// Servicio para gestionar puntajes de usuarios
 /// Principio SOLID: SRP (Single Responsibility - solo gestiona puntajes)
+/// Principio SOLID: DIP (Dependency Inversion - depende de interfaces)
 /// </summary>
-public class UserScoreService
+public class UserScoreService : IUserScoreService
 {
-	private readonly UserDatabaseService _userDatabase;
+	private readonly IUserDatabaseService _userDatabase;
 
-	public UserScoreService(UserDatabaseService userDatabase)
+	public UserScoreService(IUserDatabaseService userDatabase)
 	{
 		_userDatabase = userDatabase;
 	}

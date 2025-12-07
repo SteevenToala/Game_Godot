@@ -4,16 +4,13 @@ using System;
 /// <summary>
 /// Servicio de autenticación - Solo maneja login, registro y cambio de contraseña
 /// Principio SOLID: SRP (Single Responsibility - solo autenticación)
-/// Principio SOLID: DIP (Dependency Inversion - usa servicios especializados)
+/// Principio SOLID: DIP (Dependency Inversion - usa ServiceLocator para obtener dependencias)
 /// </summary>
 public static class AuthService
 {
 	private static IUserLockService _lockService;
-	private static UserService _userService;
-	private static UserScoreService _scoreService;
-	
-	// Dependencias compartidas
-	private static UserDatabaseService _userDatabase;
+	private static IUserService _userService;
+	private static IUserScoreService _scoreService;
 	private static bool _initialized = false;
 
 	/// <summary>
@@ -27,20 +24,23 @@ public static class AuthService
 	public static bool IsLoggedIn => SessionService.IsLoggedIn;
 
 	/// <summary>
-	/// Inicializa AuthService y sus servicios dependientes
+	/// Inicializa AuthService y sus servicios dependientes mediante ServiceLocator
 	/// </summary>
 	public static void Initialize()
 	{
 		if (_initialized)
 			return;
 
-		// Inicializar dependencias compartidas
-		_userDatabase = new UserDatabaseService();
-		_lockService = new UserLockService();
-		
-		// Inicializar servicios especializados
-		_userService = new UserService(_userDatabase, _lockService);
-		_scoreService = new UserScoreService(_userDatabase);
+		// Asegurar que ServiceLocator esté inicializado
+		if (!ServiceLocator.IsRegistered<IUserDatabaseService>())
+		{
+			ServiceLocator.Initialize();
+		}
+
+		// Obtener servicios desde ServiceLocator (Inyección de Dependencias)
+		_lockService = ServiceLocator.Get<IUserLockService>();
+		_userService = ServiceLocator.Get<IUserService>();
+		_scoreService = ServiceLocator.Get<IUserScoreService>();
 		
 		_initialized = true;
 		
