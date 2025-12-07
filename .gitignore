@@ -4,6 +4,7 @@ export.cfg
 export_presets.cfg
 .godot/
 *.translation
+*.import
 
 # Exported builds
 /bin/

@@ -1,6 +1,7 @@
-[gd_scene load_steps=18 format=3 uid="uid://b6mubby67bt5w"]
+[gd_scene load_steps=19 format=3 uid="uid://b6mubby67bt5w"]
 
 [ext_resource type="Script" uid="uid://bgn7dd3rxnqmv" path="res://scripts/managers/GameManager.cs" id="1_gee14"]
+[ext_resource type="Script" uid="uid://dvxq28o3ax2ra" path="res://scripts/managers/UserManager.cs" id="2_user"]
 [ext_resource type="PackedScene" uid="uid://dw63wresywefv" path="res://scenes/player.tscn" id="2_8516w"]
 [ext_resource type="PackedScene" uid="uid://b3plyukpd7eio" path="res://scenes/enemy.tscn" id="4_omci2"]
 [ext_resource type="PackedScene" uid="uid://cf6r2pmsbblle" path="res://scenes/hud.tscn" id="5_68y73"]
@@ -86,6 +87,9 @@ position = Vector2(270, 850)
 
 [node name="ScoreManager" type="Node" parent="."]
 script = ExtResource("9_vtaks")
+
+[node name="UserManager" type="Node" parent="."]
+script = ExtResource("2_user")
 
 [node name="SpawnManager" type="Node" parent="."]
 script = ExtResource("10_kvpfn")
