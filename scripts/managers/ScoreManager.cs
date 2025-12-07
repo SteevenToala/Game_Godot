@@ -19,11 +19,30 @@ public partial class ScoreManager : Node, IInitializable
 
 	public void Initialize()
 	{
-		// Buscar el UserManager
-		_userManager = GetNode<UserManager>("../UserManager");
+		// Buscar el UserManager - intentar múltiples rutas
+		_userManager = GetNodeOrNull<UserManager>("../UserManager");
+		
+		if (_userManager == null)
+		{
+			_userManager = GetNodeOrNull<UserManager>("/root/Game/UserManager");
+		}
+		
+		if (_userManager == null)
+		{
+			var gameManager = GetNodeOrNull<GameManager>("..");
+			if (gameManager != null)
+			{
+				_userManager = gameManager.GetNodeOrNull<UserManager>("UserManager");
+			}
+		}
+
 		if (_userManager != null)
 		{
 			_userManager.HighScoreUpdated += OnUserHighScoreUpdated;
+		}
+		else
+		{
+			GD.PrintErr("⚠️ UserManager no encontrado en ScoreManager");
 		}
 
 		LoadHighScore();

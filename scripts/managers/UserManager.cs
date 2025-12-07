@@ -24,19 +24,39 @@ public partial class UserManager : Node, IInitializable
 		
 		CreateLoginScreen();
 		
-		// CAMBIO: Siempre mostrar la pantalla de login primero
-		ShowLoginScreen();
-		
-		// CAMBIO: Con múltiples usuarios, no pre-llenamos datos
-		// Los usuarios deben ingresar su usuario manualmente
-		GD.Print("📋 Sistema de múltiples usuarios activo - Esperando credenciales del usuario");
+		// CAMBIO: Si hay un usuario ya logueado (ej: después de recargar escena), conectarse automáticamente
+		if (AuthService.IsLoggedIn)
+		{
+			GD.Print($"🔄 Usuario aún logueado después de recarga: {AuthService.CurrentUser.Username}");
+			HideLoginScreen();
+			EmitSignal(SignalName.UserLoggedIn, AuthService.CurrentUser.Username);
+		}
+		else
+		{
+			GD.Print("📋 Sistema de múltiples usuarios activo - Esperando credenciales del usuario");
+		}
 	}
 
 	private void CreateLoginScreen()
 	{
-		_loginScreen = new LoginScreen();
+		// Cargar la escena completa de login_screen.tscn en lugar de crear instancia vacía
+		var loginScene = GD.Load<PackedScene>("res://scenes/login_screen.tscn");
+		if (loginScene == null)
+		{
+			GD.PrintErr("❌ No se pudo cargar la escena login_screen.tscn");
+			return;
+		}
+
+		_loginScreen = loginScene.Instantiate<LoginScreen>();
+		if (_loginScreen == null)
+		{
+			GD.PrintErr("❌ No se pudo instanciar LoginScreen");
+			return;
+		}
+
 		_loginScreen.Name = "LoginScreen";
 		AddChild(_loginScreen);
+		GD.Print("✅ LoginScreen añadido al árbol de escena");
 
 		// Conectar señales usando constantes generadas
 		_loginScreen.Connect(LoginScreen.SignalName.LoginSuccess, new Callable(this, nameof(OnUserLoggedInByName)));

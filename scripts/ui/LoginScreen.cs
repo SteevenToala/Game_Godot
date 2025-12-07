@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class LoginScreen : Control, IInitializable
 {
@@ -36,310 +37,101 @@ public partial class LoginScreen : Control, IInitializable
 	private Button _unlockUserButton;
 	private Button _closeManageUsersButton;
 	private Label _manageUsersStatus;
-
 	public override void _Ready()
 	{
+		GD.Print("🔐 LoginScreen._Ready() - Inicializando pantalla de login");
 		Initialize();
 	}
 
 	public void Initialize()
 	{
-		CreateUI();
+		GD.Print("🔐 LoginScreen.Initialize() - Obteniendo nodos de la escena");
+		GetNodesFromScene();
 		ConnectSignals();
 		UpdateUIState();
+		
+		// Asegurar que la pantalla sea visible
+		Visible = true;
+		GD.Print("✅ LoginScreen inicializado correctamente");
 	}
 
-	private void CreateUI()
+	private void GetNodesFromScene()
 	{
-		// Panel principal
-		var mainPanel = new Panel();
-		mainPanel.Size = new Vector2(400, 700);
-		mainPanel.Position = new Vector2(50, 100);
-		mainPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
-		AddChild(mainPanel);
+		try
+		{
+			// Obtener nodos existentes del árbol de escena - Sección Login
+			_usernameField = GetNodeOrNull<LineEdit>("UILayer/MainPanel/MarginContainer/VBoxContainer/UsernameField");
+			_passwordField = GetNodeOrNull<LineEdit>("UILayer/MainPanel/MarginContainer/VBoxContainer/PasswordContainer/PasswordField");
+			_togglePasswordButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/PasswordContainer/TogglePasswordButton");
+			_loginButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/ButtonContainer/LoginButton");
+			_createButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/ButtonContainer/CreateButton");
+			_attemptsLabel = GetNodeOrNull<Label>("UILayer/MainPanel/MarginContainer/VBoxContainer/AttemptsLabel");
+			_statusLabel = GetNodeOrNull<Label>("UILayer/MainPanel/MarginContainer/VBoxContainer/StatusLabel");
+			_manageUsersLoginButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/ManageUsersLoginButton");
 
-		// Título
-		var titleLabel = new Label();
-		titleLabel.Text = "AUTENTICACION";
-		titleLabel.Position = new Vector2(150, 20);
-		titleLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		mainPanel.AddChild(titleLabel);
+			// Obtener nodos para usuario logueado
+			_userInfoLabel = GetNodeOrNull<Label>("UILayer/MainPanel/MarginContainer/VBoxContainer/UserInfoLabel");
+			_changePasswordMenuButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/ChangePasswordMenuButton");
+			_manageUsersButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/ManageUsersButton");
+			_logoutButton = GetNodeOrNull<Button>("UILayer/MainPanel/MarginContainer/VBoxContainer/LogoutButton");
 
-		// --- SECCIÓN DE LOGIN ---
-		var loginContainer = new VBoxContainer();
-		loginContainer.Position = new Vector2(20, 50);
-		loginContainer.Size = new Vector2(360, 200);
-		mainPanel.AddChild(loginContainer);
+			// Obtener nodos del panel de cambio de contraseña
+			_changePasswordPanel = GetNodeOrNull<Control>("UILayer/ChangePasswordPanel");
+			_currentPasswordField = GetNodeOrNull<LineEdit>("UILayer/ChangePasswordPanel/ChangePasswordContainer/CurrentPasswordField");
+			_newPasswordField = GetNodeOrNull<LineEdit>("UILayer/ChangePasswordPanel/ChangePasswordContainer/NewPasswordField");
+			_confirmPasswordField = GetNodeOrNull<LineEdit>("UILayer/ChangePasswordPanel/ChangePasswordContainer/ConfirmPasswordField");
+			_changePasswordButton = GetNodeOrNull<Button>("UILayer/ChangePasswordPanel/ChangePasswordContainer/ButtonContainer/ChangePasswordButton");
+			_cancelChangePasswordButton = GetNodeOrNull<Button>("UILayer/ChangePasswordPanel/ChangePasswordContainer/ButtonContainer/CancelChangePasswordButton");
+			_changePasswordStatus = GetNodeOrNull<Label>("UILayer/ChangePasswordPanel/ChangePasswordContainer/ChangePasswordStatus");
 
-		// Campo de usuario
-		var usernameLabel = new Label();
-		usernameLabel.Text = "Usuario:";
-		usernameLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		loginContainer.AddChild(usernameLabel);
+			// Obtener nodos del panel de gestión de usuarios
+			_manageUsersPanel = GetNodeOrNull<Control>("UILayer/ManageUsersPanel");
+			_lockedUsersList = GetNodeOrNull<ItemList>("UILayer/ManageUsersPanel/ManageContainer/LockedUsersList");
+			_unlockUserButton = GetNodeOrNull<Button>("UILayer/ManageUsersPanel/ManageContainer/ManageButtonContainer/UnlockUserButton");
+			_closeManageUsersButton = GetNodeOrNull<Button>("UILayer/ManageUsersPanel/ManageContainer/ManageButtonContainer/CloseManageUsersButton");
+			_manageUsersStatus = GetNodeOrNull<Label>("UILayer/ManageUsersPanel/ManageContainer/ManageUsersStatus");
 
-		_usernameField = new LineEdit();
-		_usernameField.PlaceholderText = "Ingresa tu nombre de usuario";
-		_usernameField.Size = new Vector2(340, 30);
-		_usernameField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_usernameField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		loginContainer.AddChild(_usernameField);
+			// Validar que al menos los nodos críticos existan
+			if (_usernameField == null || _passwordField == null || _loginButton == null)
+			{
+				GD.PrintErr("❌ LoginScreen: Nodos críticos no encontrados");
+				GD.PrintErr($"   UsernameField: {_usernameField != null}");
+				GD.PrintErr($"   PasswordField: {_passwordField != null}");
+				GD.PrintErr($"   LoginButton: {_loginButton != null}");
+				return;
+			}
 
-		// Campo de contraseña
-		var passwordLabel = new Label();
-		passwordLabel.Text = "Contraseña:";
-		passwordLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		loginContainer.AddChild(passwordLabel);
-
-		// Contenedor horizontal para contraseña + botón toggle
-		var passwordContainer = new HBoxContainer();
-		passwordContainer.Size = new Vector2(340, 30);
-		loginContainer.AddChild(passwordContainer);
-
-		_passwordField = new LineEdit();
-		_passwordField.PlaceholderText = "Ingresa tu contraseña";
-		_passwordField.Secret = true;
-		_passwordField.Size = new Vector2(300, 30);
-		_passwordField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_passwordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		passwordContainer.AddChild(_passwordField);
-
-		// Botón para mostrar/ocultar contraseña
-		_togglePasswordButton = new Button();
-		_togglePasswordButton.Text = "👁️";
-		_togglePasswordButton.Size = new Vector2(40, 30);
-		_togglePasswordButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_togglePasswordButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_togglePasswordButton.Pressed += OnTogglePasswordVisibility;
-		passwordContainer.AddChild(_togglePasswordButton);
-
-		// Label de intentos restantes
-		_attemptsLabel = new Label();
-		_attemptsLabel.Text = "";
-		_attemptsLabel.AddThemeColorOverride("font_color", Colors.Yellow);
-		loginContainer.AddChild(_attemptsLabel);
-
-		// Botones: Login + Crear cuenta
-		var buttons = new HBoxContainer();
-		buttons.Size = new Vector2(360, 40);
-		loginContainer.AddChild(buttons);
-
-		_loginButton = new Button();
-		_loginButton.Text = "INICIAR SESIÓN";
-		_loginButton.Size = new Vector2(100, 40);
-		_loginButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_loginButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		buttons.AddChild(_loginButton);
-
-		_createButton = new Button();
-		_createButton.Text = "CREAR CUENTA";
-		_createButton.Size = new Vector2(170, 40);
-		_createButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_createButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		buttons.AddChild(_createButton);
-
-		// Label de estado
-		_statusLabel = new Label();
-		_statusLabel.Text = "";
-		_statusLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		_statusLabel.Size = new Vector2(340, 60);
-		_statusLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		loginContainer.AddChild(_statusLabel);
-
-		// Botón de gestión de usuarios (en pantalla de login)
-		_manageUsersLoginButton = new Button();
-		_manageUsersLoginButton.Text = "🔑 GESTIONAR USUARIOS";
-		_manageUsersLoginButton.Size = new Vector2(340, 30);
-		_manageUsersLoginButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_manageUsersLoginButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		loginContainer.AddChild(_manageUsersLoginButton);
-
-		// --- SECCIÓN DE USUARIO LOGUEADO ---
-		var userContainer = new VBoxContainer();
-		userContainer.Position = new Vector2(20, 280);
-		userContainer.Size = new Vector2(360, 200);
-		mainPanel.AddChild(userContainer);
-
-		_userInfoLabel = new Label();
-		_userInfoLabel.Text = "";
-		_userInfoLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		_userInfoLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		userContainer.AddChild(_userInfoLabel);
-
-		_changePasswordMenuButton = new Button();
-		_changePasswordMenuButton.Text = "CAMBIAR CONTRASEÑA";
-		_changePasswordMenuButton.Size = new Vector2(340, 30);
-		_changePasswordMenuButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_changePasswordMenuButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		userContainer.AddChild(_changePasswordMenuButton);
-
-		_manageUsersButton = new Button();
-		// _manageUsersButton.Text = "GESTIONAR USUARIOS";
-		_manageUsersButton.Size = new Vector2(340, 30);
-		_manageUsersButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_manageUsersButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		userContainer.AddChild(_manageUsersButton);
-
-		_logoutButton = new Button();
-		_logoutButton.Text = "CERRAR SESIÓN";
-		_logoutButton.Size = new Vector2(340, 30);
-		_logoutButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_logoutButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		userContainer.AddChild(_logoutButton);
-
-		// --- PANEL DE CAMBIO DE CONTRASEÑA ---
-		_changePasswordPanel = new Panel();
-		_changePasswordPanel.Position = new Vector2(300, 200);
-		_changePasswordPanel.Size = new Vector2(350, 300);
-		_changePasswordPanel.Visible = false;
-		AddChild(_changePasswordPanel);
-
-		var changePassTitle = new Label();
-		changePassTitle.Text = "CAMBIAR CONTRASEÑA";
-		changePassTitle.Position = new Vector2(20, 20);
-		_changePasswordPanel.AddChild(changePassTitle);
-
-		var changePassContainer = new VBoxContainer();
-		changePassContainer.Position = new Vector2(20, 50);
-		changePassContainer.Size = new Vector2(310, 240);
-		_changePasswordPanel.AddChild(changePassContainer);
-
-		// Contraseña actual
-		var currentPassLabel = new Label();
-		currentPassLabel.Text = "Contraseña actual:";
-		currentPassLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		changePassContainer.AddChild(currentPassLabel);
-
-		_currentPasswordField = new LineEdit();
-		_currentPasswordField.Secret = true;
-		_currentPasswordField.Size = new Vector2(300, 30);
-		_currentPasswordField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_currentPasswordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		changePassContainer.AddChild(_currentPasswordField);
-
-		// Nueva contraseña
-		var newPassLabel = new Label();
-		newPassLabel.Text = "Nueva contraseña:";
-		newPassLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		changePassContainer.AddChild(newPassLabel);
-
-		_newPasswordField = new LineEdit();
-		_newPasswordField.Secret = true;
-		_newPasswordField.Size = new Vector2(300, 30);
-		_newPasswordField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_newPasswordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		changePassContainer.AddChild(_newPasswordField);
-
-		// Confirmar contraseña
-		var confirmPassLabel = new Label();
-		confirmPassLabel.Text = "Confirmar nueva contraseña:";
-		confirmPassLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		changePassContainer.AddChild(confirmPassLabel);
-
-		_confirmPasswordField = new LineEdit();
-		_confirmPasswordField.Secret = true;
-		_confirmPasswordField.Size = new Vector2(300, 30);
-		_confirmPasswordField.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_confirmPasswordField.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.InputBackground });
-		changePassContainer.AddChild(_confirmPasswordField);
-
-		// Botones
-		var buttonContainer = new HBoxContainer();
-		buttonContainer.Size = new Vector2(300, 40);
-		changePassContainer.AddChild(buttonContainer);
-
-		_changePasswordButton = new Button();
-		_changePasswordButton.Text = "CAMBIAR";
-		_changePasswordButton.Size = new Vector2(140, 30);
-		_changePasswordButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_changePasswordButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		buttonContainer.AddChild(_changePasswordButton);
-
-		_cancelChangePasswordButton = new Button();
-		_cancelChangePasswordButton.Text = "CANCELAR";
-		_cancelChangePasswordButton.Size = new Vector2(140, 30);
-		_cancelChangePasswordButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_cancelChangePasswordButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		buttonContainer.AddChild(_cancelChangePasswordButton);
-
-		// Status del cambio de contraseña
-		_changePasswordStatus = new Label();
-		_changePasswordStatus.Text = "";
-		_changePasswordStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		_changePasswordStatus.Size = new Vector2(300, 40);
-		_changePasswordStatus.AddThemeColorOverride("font_color", ColorPalette.Text);
-		changePassContainer.AddChild(_changePasswordStatus);
-
-		// --- PANEL DE GESTIÓN DE USUARIOS BLOQUEADOS ---
-		_manageUsersPanel = new Panel();
-		_manageUsersPanel.Position = new Vector2(200, 150);
-		_manageUsersPanel.Size = new Vector2(500, 400);
-		_manageUsersPanel.Visible = false;
-		_manageUsersPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
-		AddChild(_manageUsersPanel);
-
-		var manageTitle = new Label();
-		manageTitle.Text = "GESTIONAR USUARIOS BLOQUEADOS";
-		manageTitle.Position = new Vector2(20, 20);
-		manageTitle.AddThemeColorOverride("font_color", ColorPalette.Text);
-		_manageUsersPanel.AddChild(manageTitle);
-
-		var manageContainer = new VBoxContainer();
-		manageContainer.Position = new Vector2(20, 50);
-		manageContainer.CustomMinimumSize = new Vector2(460, 330);
-		_manageUsersPanel.AddChild(manageContainer);
-
-		var infoLabel = new Label();
-		infoLabel.Text = "Usuarios bloqueados:";
-		infoLabel.AddThemeColorOverride("font_color", ColorPalette.Text);
-		manageContainer.AddChild(infoLabel);
-
-		_lockedUsersList = new ItemList();
-		_lockedUsersList.CustomMinimumSize = new Vector2(460, 200);
-		_lockedUsersList.AddThemeColorOverride("font_color", ColorPalette.Text);
-		manageContainer.AddChild(_lockedUsersList);
-
-		_manageUsersStatus = new Label();
-		_manageUsersStatus.Text = "";
-		_manageUsersStatus.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-		_manageUsersStatus.CustomMinimumSize = new Vector2(460, 40);
-		_manageUsersStatus.AddThemeColorOverride("font_color", ColorPalette.Text);
-		manageContainer.AddChild(_manageUsersStatus);
-
-		var manageButtonContainer = new HBoxContainer();
-		manageButtonContainer.CustomMinimumSize = new Vector2(460, 40);
-		manageContainer.AddChild(manageButtonContainer);
-
-		_unlockUserButton = new Button();
-		_unlockUserButton.Text = "DESBLOQUEAR SELECCIONADO";
-		_unlockUserButton.Size = new Vector2(300, 40);
-		_unlockUserButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_unlockUserButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		manageButtonContainer.AddChild(_unlockUserButton);
-
-		_closeManageUsersButton = new Button();
-		_closeManageUsersButton.Text = "CERRAR";
-		_closeManageUsersButton.Size = new Vector2(140, 40);
-		_closeManageUsersButton.AddThemeStyleboxOverride("normal", new StyleBoxFlat() { BgColor = ColorPalette.Button });
-		_closeManageUsersButton.AddThemeColorOverride("font_color", ColorPalette.Text);
-		manageButtonContainer.AddChild(_closeManageUsersButton);
+			GD.Print("✅ LoginScreen: Todos los nodos obtenidos correctamente");
+		}
+		catch (Exception ex)
+		{
+			GD.PrintErr($"❌ Error al obtener nodos del LoginScreen: {ex.Message}");
+			GD.PrintErr($"Stack trace: {ex.StackTrace}");
+		}
 	}
 
+	/// <summary>
+	/// Conecta los eventos de los botones con sus respectivos handlers
+	/// </summary>
 	private void ConnectSignals()
 	{
-		_loginButton.Pressed += OnLoginButtonPressed;
-		_createButton.Pressed += OnCreateButtonPressed;
-		_manageUsersLoginButton.Pressed += OnManageUsersLoginButtonPressed;
-		_changePasswordMenuButton.Pressed += OnChangePasswordMenuPressed;
-		_manageUsersButton.Pressed += OnManageUsersButtonPressed;
-		_logoutButton.Pressed += OnLogoutButtonPressed;
-		_changePasswordButton.Pressed += OnChangePasswordButtonPressed;
-		_cancelChangePasswordButton.Pressed += OnCancelChangePasswordPressed;
-		_unlockUserButton.Pressed += OnUnlockUserButtonPressed;
-		_closeManageUsersButton.Pressed += OnCloseManageUsersPressed;
+		// Conectar solo si los nodos existen
+		if (_loginButton != null) _loginButton.Pressed += OnLoginButtonPressed;
+		if (_createButton != null) _createButton.Pressed += OnCreateButtonPressed;
+		if (_manageUsersLoginButton != null) _manageUsersLoginButton.Pressed += OnManageUsersLoginButtonPressed;
+		if (_changePasswordMenuButton != null) _changePasswordMenuButton.Pressed += OnChangePasswordMenuPressed;
+		if (_manageUsersButton != null) _manageUsersButton.Pressed += OnManageUsersButtonPressed;
+		if (_logoutButton != null) _logoutButton.Pressed += OnLogoutButtonPressed;
+		if (_changePasswordButton != null) _changePasswordButton.Pressed += OnChangePasswordButtonPressed;
+		if (_cancelChangePasswordButton != null) _cancelChangePasswordButton.Pressed += OnCancelChangePasswordPressed;
+		if (_unlockUserButton != null) _unlockUserButton.Pressed += OnUnlockUserButtonPressed;
+		if (_closeManageUsersButton != null) _closeManageUsersButton.Pressed += OnCloseManageUsersPressed;
+		if (_togglePasswordButton != null) _togglePasswordButton.Pressed += OnTogglePasswordVisibility;
 
 		// Enter para hacer login
-		_passwordField.TextSubmitted += (_) => OnLoginButtonPressed();
-		// Enter en username+password crea usuario si se presiona shift (comportamiento extra opcional)
+		if (_passwordField != null) _passwordField.TextSubmitted += (_) => OnLoginButtonPressed();
+
+		GD.Print("✅ LoginScreen: Señales conectadas");
 	}
 
 	private void OnLoginButtonPressed()
@@ -668,4 +460,6 @@ public partial class LoginScreen : Control, IInitializable
 		_manageUsersStatus.Text = message;
 		_manageUsersStatus.Modulate = isError ? Colors.Red : Colors.Green;
 	}
+
+	// ========== MÉTODOS PARA PANEL DE INFORMACIÓN POST-JUEGO ==========
 }

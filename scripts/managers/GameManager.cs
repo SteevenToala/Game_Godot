@@ -28,14 +28,43 @@ public partial class GameManager : Node2D, IInitializable
 		InitializeManagers();
 		SetupPlayer();
 		
-		// NUEVO: Ocultar elementos del juego hasta que haya login
+		// Ocultar elementos del juego inicialmente
 		HideGameElements();
 		
-		// CAMBIO: No iniciar automáticamente, esperar login
-		// Solo mostrar la pantalla de login
-		if (_userManager != null)
+		// Si ya hay un usuario logueado (después de recargar escena), iniciar juego automáticamente
+		if (_userManager != null && _userManager.IsUserLoggedIn())
 		{
-			_userManager.ShowLoginScreen();
+			var user = _userManager.GetCurrentUser();
+			GD.Print($"🔄 Reiniciando juego con usuario: {user.Username}");
+			
+			// Resetear puntuación y nivel para una partida nueva
+			if (_scoreManager != null)
+			{
+				_scoreManager.ResetScore();
+				_scoreManager.RefreshHighScore(); // Cargar el high score del usuario
+			}
+			
+			_levelManager?.ResetLevel();
+			_spawnManager?.ResetDifficulty();
+			
+			// Actualizar HUD con los datos del usuario
+			if (_hud != null)
+			{
+				_hud.SetUser(user.Username);
+				_hud.SetHighScore(user.HighScore);
+			}
+			
+			_gameActive = true;
+			ShowGameElements();
+			AudioService.Instance?.ResumeBackgroundMusic();
+		}
+		else
+		{
+			// Mostrar pantalla de login si no hay usuario logueado
+			if (_userManager != null)
+			{
+				_userManager.ShowLoginScreen();
+			}
 		}
 	}
 	
@@ -177,6 +206,17 @@ public partial class GameManager : Node2D, IInitializable
 		AudioService.Instance?.ResumeBackgroundMusic();
 		GetTree().ReloadCurrentScene();
 	}
+
+	/// <summary>
+	/// Reinicia el juego recargando la escena completamente
+	/// La sesión del usuario se mantiene a través de AuthService (es un singleton static)
+	/// Los puntajes se guardan en la base de datos de usuarios
+	/// </summary>
+	public void RestartGameWithoutReload()
+	{
+		GD.Print("🔄 Recargando escena del juego...");
+		GetTree().ReloadCurrentScene();
+	}
 	
 	private void AdvanceBackground(float delta)
 	{
@@ -316,6 +356,16 @@ public partial class GameManager : Node2D, IInitializable
 			_userManager.HideLoginScreen();
 		}
 
+		// Repositionar y resetear al jugador
+		if (_player != null && _playerSpawnPosition != null)
+		{
+			_player.GlobalPosition = _playerSpawnPosition.GlobalPosition;
+			if (_player is Player player)
+			{
+				player.Respawn();
+			}
+		}
+
 		// NUEVO: Mostrar elementos del juego
 		ShowGameElements();
 		
@@ -380,13 +430,13 @@ public partial class GameManager : Node2D, IInitializable
 			_parallaxBackground.Visible = false;
 		}
 
-		// Pausar spawning accediendo al timer
+		// Pausar spawning
 		if (_spawnManager != null)
 		{
 			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
 			if (spawnTimer != null)
 			{
-				spawnTimer.Paused = true;
+				spawnTimer.Stop();
 			}
 		}
 
@@ -395,10 +445,15 @@ public partial class GameManager : Node2D, IInitializable
 
 	private void ShowGameElements()
 	{
-		// Mostrar player
+		// Mostrar player y asegurar que está en la posición correcta
 		if (_player != null)
 		{
 			_player.Visible = true;
+			if (_playerSpawnPosition != null)
+			{
+				_player.GlobalPosition = _playerSpawnPosition.GlobalPosition;
+			}
+			GD.Print($"👾 Player mostrado en posición: {_player.GlobalPosition}");
 		}
 
 		// Mostrar HUD
@@ -413,13 +468,16 @@ public partial class GameManager : Node2D, IInitializable
 			_parallaxBackground.Visible = true;
 		}
 
-		// Reanudar spawning
+		// Iniciar spawning
 		if (_spawnManager != null)
 		{
 			var spawnTimer = _spawnManager.GetNodeOrNull<Timer>("SpawnTimer");
 			if (spawnTimer != null)
 			{
-				spawnTimer.Paused = false;
+				// Reiniciar el timer a su valor inicial y arrancarlo
+				spawnTimer.WaitTime = 2.0f; // Tiempo inicial configurado en la escena
+				spawnTimer.Stop();
+				spawnTimer.Start();
 			}
 		}
 

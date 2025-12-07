@@ -96,7 +96,6 @@ ShooterSpawnChance = 0.15
 
 [node name="SpawnTimer" type="Timer" parent="SpawnManager"]
 wait_time = 2.0
-autostart = true
 
 [node name="SFX" type="Node" parent="."]
 script = ExtResource("12_dinhu")

@@ -225,4 +225,26 @@ public partial class Player : CharacterBody2D, IDamageable, IInitializable
 		_commandInvoker?.ClearQueue();
 		_commandInvoker?.ClearHistory();
 	}
+
+	/// <summary>
+	/// Reinicia el jugador a su estado inicial (para reiniciar juego sin recargar escena)
+	/// </summary>
+	public void Respawn()
+	{
+		if (_healthComponent != null)
+		{
+			_healthComponent.SetMaxHealth(Constants.DefaultPlayerHealth);
+			_healthComponent.Heal(_healthComponent.MaxHealth);
+		}
+
+		_currentMovementDirection = Vector2.Zero;
+		Velocity = Vector2.Zero;
+
+		if (_movementComponent != null)
+		{
+			_movementComponent.SetMovementParameters(Constants.PlayerSpeed, Vector2.Zero);
+		}
+
+		GD.Print("🔄 Jugador reaparece");
+	}
 }

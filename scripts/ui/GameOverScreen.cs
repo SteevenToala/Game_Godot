@@ -4,7 +4,9 @@ public partial class GameOverScreen : Control, IInitializable
 {
 	private Label _scoreLabel;
 	private Label _highScoreLabel;
-	private Label _userLabel; // NUEVO: Label para mostrar el usuario
+	private Label _userLabel; // Label para mostrar el usuario
+	private Button _restartButton;
+	private Button _logoutButton;
 
 	public override void _Ready()
 	{
@@ -15,22 +17,25 @@ public partial class GameOverScreen : Control, IInitializable
 	{
 		_scoreLabel = GetNode<Label>("Panel/Score");
 		_highScoreLabel = GetNode<Label>("Panel/HighScore");
+		_userLabel = GetNodeOrNull<Label>("Panel/User");
+		_restartButton = GetNodeOrNull<Button>("Panel/ButtonContainer/RestartButton");
+		_logoutButton = GetNodeOrNull<Button>("Panel/ButtonContainer/LogoutButton");
 		
 		// Aplicar colores
 		GetNode<Panel>("Panel").AddThemeStyleboxOverride("panel", new StyleBoxFlat() { BgColor = ColorPalette.PanelBackground });
 		_scoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
 		_highScoreLabel?.AddThemeColorOverride("font_color", ColorPalette.Text);
-		
-		// Intentar obtener el label de usuario, si no existe, crearlo
-		_userLabel = GetNodeOrNull<Label>("Panel/User");
-		if (_userLabel == null)
+		_userLabel?.AddThemeColorOverride("font_color", ColorPalette.Accent);
+
+		// Conectar eventos
+		if (_restartButton != null)
 		{
-			_userLabel = new Label();
-			_userLabel.Name = "User";
-			_userLabel.Text = "Usuario: ---";
-			_userLabel.Position = new Vector2(20, 120); // Ajustar según el layout
-			_userLabel.AddThemeColorOverride("font_color", ColorPalette.Accent);
-			GetNode<Panel>("Panel").AddChild(_userLabel);
+			_restartButton.Pressed += OnRestartButtonPressed;
+		}
+
+		if (_logoutButton != null)
+		{
+			_logoutButton.Pressed += OnLogoutButtonPressed;
 		}
 	}
 
@@ -60,6 +65,28 @@ public partial class GameOverScreen : Control, IInitializable
 
 	public void OnRestartButtonPressed()
 	{
+		// Obtener el GameManager desde la raíz
+		var root = GetTree().Root;
+		var gameManager = root.GetNode<GameManager>("Game");
+		
+		if (gameManager != null)
+		{
+			gameManager.RestartGameWithoutReload();
+		}
+		else
+		{
+			// Fallback si no se encuentra GameManager
+			GD.PrintErr("GameManager no encontrado");
+			GetTree().ReloadCurrentScene();
+		}
+	}
+
+	private void OnLogoutButtonPressed()
+	{
+		// Cerrar sesión
+		AuthService.Logout();
+
+		// Volver a la pantalla de login
 		GetTree().ReloadCurrentScene();
 	}
 }

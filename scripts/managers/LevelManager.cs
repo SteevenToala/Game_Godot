@@ -88,8 +88,11 @@ public partial class LevelManager : Node, IInitializable
 		_scoreForNextLevel = SCORE_INCREMENT_PER_LEVEL;
 		CalculateCurrentMultipliers();
 		
-		EmitSignal(SignalName.LevelChanged, _currentLevel);
-		EmitSignal(SignalName.DifficultyUpdated, CurrentSpeedMultiplier, CurrentSpawnRateMultiplier);
+		// NO emitir eventos durante reset - solo cuando el jugador sube realmente de nivel durante el juego
+		// EmitSignal(SignalName.LevelChanged, _currentLevel);
+		// EmitSignal(SignalName.DifficultyUpdated, CurrentSpeedMultiplier, CurrentSpawnRateMultiplier);
+		
+		GD.Print($"🔄 Nivel reseteado a 1");
 	}
 	
 	// Información de nivel para debug
