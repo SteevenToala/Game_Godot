@@ -1,5 +1,10 @@
 using Godot;
 
+/// <summary>
+/// Enemigo que dispara proyectiles al jugador
+/// Patrón: Component (usa Health y Movement)
+/// Principio SOLID: DIP - Depende de IAudioService (abstracción)
+/// </summary>
 public partial class ShooterEnemy : Enemy
 {
 	[Export] public PackedScene ProjectileScene { get; set; }
@@ -10,6 +15,9 @@ public partial class ShooterEnemy : Enemy
 	private Timer _shootTimer;
 	private Node2D _muzzle;
 	private bool _hasEnteredScreen = false;
+	
+	// Servicio de audio inyectado (DIP)
+	private IAudioService _audioService;
 
 	[Signal] public delegate void ProjectileFiredEventHandler(PackedScene projectileScene, Vector2 position, float speed, int damage);
 
@@ -30,6 +38,13 @@ public partial class ShooterEnemy : Enemy
 		if (_movementComponent != null)
 		{
 			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
+		}
+		
+		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
+		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
+		if (_audioService == null)
+		{
+			_audioService = GetNode<AudioService>("/root/Game/SFX");
 		}
 
 		SetupShooting();
@@ -79,7 +94,7 @@ public partial class ShooterEnemy : Enemy
 		EmitSignal(SignalName.ProjectileFired, ProjectileScene, _muzzle.GlobalPosition, ProjectileSpeed, ProjectileDamage);
 
 		// Reproducir sonido de disparo enemigo
-		AudioService.Instance?.PlayHit(); // Reutilizamos el sonido de hit
+		_audioService?.PlayHit(); // Reutilizamos el sonido de hit
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -112,7 +127,7 @@ public partial class ShooterEnemy : Enemy
 		}
 
 		// Sonido específico para destrucción del shooter
-		AudioService.Instance?.PlayExplosion();
+		_audioService?.PlayExplosion();
 
 		base.OnDied();
 	}

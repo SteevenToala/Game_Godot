@@ -1,5 +1,10 @@
 using Godot;
 
+/// <summary>
+/// Proyectil disparado por enemigos
+/// Patrón: Component (usa Movement)
+/// Principio SOLID: DIP - Depende de IAudioService (abstracción)
+/// </summary>
 public partial class EnemyProjectile : Area2D
 {
 	[Export] public float Speed { get; set; } = 200.0f;
@@ -8,6 +13,9 @@ public partial class EnemyProjectile : Area2D
 	private Movement _movementComponent;
 	private VisibleOnScreenNotifier2D _visibilityNotifier;
 	private bool _isInitialized = false;
+	
+	// Servicio de audio inyectado (DIP)
+	private IAudioService _audioService;
 	
 	public override void _Ready()
 	{
@@ -39,6 +47,13 @@ public partial class EnemyProjectile : Area2D
 	/// </summary>
 	private void InitializeComponents()
 	{
+		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
+		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
+		if (_audioService == null)
+		{
+			_audioService = GetNode<AudioService>("/root/Game/SFX");
+		}
+		
 		// Configurar componente de movimiento
 		_movementComponent = GetNode<Movement>("Movement");
 		if (_movementComponent != null)
@@ -93,7 +108,7 @@ public partial class EnemyProjectile : Area2D
 			if (body is Player player)
 			{
 				player.TakeDamage(Damage);
-				AudioService.Instance?.PlayHit();
+				_audioService?.PlayHit();
 			}
 			
 			DestroyProjectile();

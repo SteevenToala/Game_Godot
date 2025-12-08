@@ -3,7 +3,9 @@ using Godot;
 /// <summary>
 /// Responsabilidad única: Coordinar y orquestar los diferentes managers del juego
 /// Principio SOLID: SRP - Solo coordina, delega responsabilidades específicas a managers especializados
+/// Principio SOLID: DIP - Depende de IAudioService (abstracción) no de AudioService (implementación)
 /// Patrón: Facade - Proporciona una interfaz simplificada para los subsistemas del juego
+/// Patrón: Dependency Injection - Recibe servicios inyectados
 /// </summary>
 public partial class GameManager : Node2D, IInitializable
 {
@@ -12,6 +14,9 @@ public partial class GameManager : Node2D, IInitializable
 	private InputManager _inputManager;
 	private BackgroundManager _backgroundManager;
 	private GameStateManager _gameStateManager;
+	
+	// Servicio de audio inyectado (DIP - Dependency Inversion Principle)
+	private IAudioService _audioService;
 	
 	// Referencias rápidas a elementos principales (obtenidas del NodeInitializer)
 	private Node2D _player;
@@ -70,7 +75,7 @@ public partial class GameManager : Node2D, IInitializable
 			
 			_gameStateManager?.ShowGameElements();
 			_backgroundManager?.SetActive(true);
-			AudioService.Instance?.ResumeBackgroundMusic();
+			_audioService?.ResumeBackgroundMusic();
 		}
 		else
 		{
@@ -92,6 +97,28 @@ public partial class GameManager : Node2D, IInitializable
 		_nodeInitializer.Name = "NodeInitializer";
 		AddChild(_nodeInitializer);
 		_nodeInitializer.Initialize(this);
+		
+		// AudioService - Inyección de dependencia (buscar en el árbol de nodos)
+		// Intentar primero en AutoLoad, luego buscar en la escena
+		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
+		if (_audioService == null)
+		{
+			// Buscar en el árbol de la escena actual (el nodo se llama "SFX")
+			_audioService = GetNodeOrNull<AudioService>("SFX");
+			
+			if (_audioService == null)
+			{
+				GD.PrintErr("⚠️ AudioService no encontrado en AutoLoad ni en la escena.");
+			}
+			else
+			{
+				GD.Print("✅ AudioService encontrado en la escena (nodo SFX).");
+			}
+		}
+		else
+		{
+			GD.Print("✅ AudioService encontrado en AutoLoad.");
+		}
 		
 		// InputManager - Maneja input del juego (quit, reset)
 		_inputManager = new InputManager();
@@ -232,7 +259,7 @@ public partial class GameManager : Node2D, IInitializable
 		// Reiniciar nivel cuando se reinicia el juego
 		_levelManager?.ResetLevel();
 		_spawnManager?.ResetDifficulty();
-		AudioService.Instance?.ResumeBackgroundMusic();
+		_audioService?.ResumeBackgroundMusic();
 		GetTree().ReloadCurrentScene();
 	}
 
@@ -277,7 +304,7 @@ public partial class GameManager : Node2D, IInitializable
 		if (enemy != null && _scoreManager != null)
 		{
 			_scoreManager.AddScore(enemy.Value);
-			AudioService.Instance?.PlayExplosion();
+			_audioService?.PlayExplosion();
 		}
 	}
 	
@@ -287,13 +314,13 @@ public partial class GameManager : Node2D, IInitializable
 		{
 			laser.GlobalPosition = location;
 			_laserContainer.AddChild(laser);
-			AudioService.Instance?.PlayLaserShot();
+			_audioService?.PlayLaserShot();
 		}
 	}
 	
 	private async void OnPlayerKilled()
 	{
-		AudioService.Instance?.PlayExplosion();
+		_audioService?.PlayExplosion();
 		
 		if (_gameOverScreen != null && _scoreManager != null)
 		{
@@ -333,7 +360,7 @@ public partial class GameManager : Node2D, IInitializable
 		GD.Print($"🎉 ¡LEVEL UP! Nivel {newLevel}");
 		_hud?.SetLevel(newLevel);
 		_hud?.ShowLevelUpMessage(newLevel);
-		AudioService.Instance?.PlayExplosion();
+		_audioService?.PlayExplosion();
 	}
 	
 	private void OnDifficultyUpdated(float speedMultiplier, float spawnRateMultiplier)

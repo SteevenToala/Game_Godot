@@ -1,16 +1,19 @@
 using Godot;
 
-public partial class AudioService : Node
+/// <summary>
+/// Servicio de audio sin Singleton (refactorizado para DIP)
+/// Principio SOLID: DIP - Se inyecta en lugar de usar instancia estática
+/// Principio SOLID: SRP - Responsabilidad única de manejar audio
+/// Patrón: Service Pattern con Dependency Injection
+/// </summary>
+public partial class AudioService : Node, IAudioService
 {
-	private static AudioService _instance;
-	public static AudioService Instance => _instance;
-	
 	// Efectos de sonido existentes
 	private AudioStreamPlayer _laserSound;
 	private AudioStreamPlayer _hitSound;
 	private AudioStreamPlayer _explodeSound;
 	
-	// Nuevo: Reproductor de música de fondo
+	// Reproductor de música de fondo
 	private AudioStreamPlayer _backgroundMusicPlayer;
 	
 	[Export] public AudioStream BackgroundMusic { get; set; }
@@ -20,16 +23,6 @@ public partial class AudioService : Node
 	
 	public override void _Ready()
 	{
-		if (_instance == null)
-		{
-			_instance = this;
-		}
-		else
-		{
-			QueueFree();
-			return;
-		}
-		
 		InitializeAudioPlayers();
 		
 		// Reproducir música automáticamente si está configurada
@@ -166,14 +159,5 @@ public partial class AudioService : Node
 	public bool IsMusicPlaying()
 	{
 		return IsInstanceValid(_backgroundMusicPlayer) ? _backgroundMusicPlayer.Playing : false;
-	}
-	
-	// Clean up when the node is about to be freed
-	public override void _ExitTree()
-	{
-		if (_instance == this)    
-		{
-			_instance = null;
-		}
 	}
 }

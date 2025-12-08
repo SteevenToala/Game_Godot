@@ -1,7 +1,15 @@
 using Godot;
 
+/// <summary>
+/// Enemigo meteoro con movimiento serpenteante
+/// Patrón: Component (usa Health y Movement)
+/// Principio SOLID: DIP - Depende de IAudioService (abstracción)
+/// </summary>
 public partial class MeteoroEnemy : Enemy
 {
+	// Servicio de audio inyectado (DIP)
+	private IAudioService _audioService;
+	
 	public override void Initialize()
 	{
 		base.Initialize();
@@ -20,6 +28,13 @@ public partial class MeteoroEnemy : Enemy
 		{
 			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
 		}
+		
+		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
+		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
+		if (_audioService == null)
+		{
+			_audioService = GetNode<AudioService>("/root/Game/SFX");
+		}
 	}
 	
 	protected override void ConfigureMovementStrategy()
@@ -36,7 +51,7 @@ public partial class MeteoroEnemy : Enemy
 	protected override void OnDied()
 	{
 		// Efecto de sonido específico para meteoro
-		AudioService.Instance?.PlayExplosion();
+		_audioService?.PlayExplosion();
 		
 		base.OnDied();
 	}
