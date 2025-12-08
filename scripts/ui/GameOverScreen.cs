@@ -139,6 +139,13 @@ public partial class GameOverScreen : Control, IInitializable
 
 	public void OnRestartButtonPressed()
 	{
+		// Validar que el nodo esté en el árbol antes de usar GetTree()
+		if (!IsInsideTree())
+		{
+			GD.PrintErr("GameOverScreen no está en el árbol al intentar reiniciar");
+			return;
+		}
+		
 		// Obtener el GameManager desde la raíz
 		var root = GetTree().Root;
 		var gameManager = root.GetNode<GameManager>("Game");
@@ -157,10 +164,23 @@ public partial class GameOverScreen : Control, IInitializable
 
 	private void OnLogoutButtonPressed()
 	{
+		// Validar que el nodo esté en el árbol antes de cualquier operación
+		if (!IsInsideTree())
+		{
+			GD.PrintErr("GameOverScreen no está en el árbol al intentar logout");
+			return;
+		}
+		
+		// Guardar referencia al SceneTree antes de hacer logout
+		var sceneTree = GetTree();
+		
 		// Cerrar sesión
 		AuthService.Logout();
 
-		// Volver a la pantalla de login
-		GetTree().ReloadCurrentScene();
+		// Volver a la pantalla de login (si el nodo aún existe)
+		if (IsInsideTree() && sceneTree != null)
+		{
+			sceneTree.ReloadCurrentScene();
+		}
 	}
 }

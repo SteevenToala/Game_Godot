@@ -25,42 +25,6 @@ public static class AuthService
 	public static bool IsLoggedIn => _currentUser != null;
 
 	/// <summary>
-	/// Inicializa AuthService con Inyección de Dependencias
-	/// Principio SOLID: DIP - Recibe dependencias en lugar de crearlas
-	/// </summary>
-	/// <param name="lockService">Servicio de bloqueo de usuarios (opcional)</param>
-	/// <param name="userDatabase">Servicio de base de datos de usuarios (opcional)</param>
-	public static void Initialize(IUserLockService lockService = null, IUserDatabaseService userDatabase = null)
-	{
-		// Usar dependencias inyectadas o crear las predeterminadas
-		_lockService = lockService ?? new UserLockService();
-		_userDatabase = userDatabase ?? (IUserDatabaseService)new UserDatabaseService();
-		_isInitialized = true;
-		
-		GD.Print("🔧 AuthService inicializado con Inyección de Dependencias");
-		GD.Print($"📊 Total de usuarios en base de datos: {_userDatabase.GetAllUsernames().Count}");
-		
-		var allUsers = _userDatabase.GetAllUsernames();
-		if (allUsers.Contains("admin"))
-		{
-			GD.Print("✅ Usuario admin disponible");
-		}
-	}
-	
-	/// <summary>
-	/// Verifica que el servicio esté inicializado antes de usarlo
-	/// </summary>
-	private static void EnsureInitialized()
-	{
-		if (!_isInitialized)
-		{
-			// Auto-inicializar con dependencias predeterminadas si no se ha hecho
-			Initialize();
-			GD.PrintErr("⚠️ AuthService se auto-inicializó. Considera llamar Initialize() explícitamente.");
-		}
-	}
-
-	/// <summary>
 	/// Intenta hacer login con las credenciales proporcionadas
 	/// Valida si el usuario está bloqueado por intentos fallidos
 	/// </summary>
@@ -110,8 +74,6 @@ public static class AuthService
 
 		GD.Print($"✅ Login exitoso: {_currentUser.Username}");
 		return new AuthResult(true, "Login exitoso", _currentUser);
-	}
-
 	/// <summary>
 	/// Registra (crea) un nuevo usuario en la base de datos
 	/// </summary>
@@ -119,6 +81,8 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		
+		if (!PasswordService.IsValidUsername(username))e, string password)
+	{
 		if (!PasswordService.IsValidUsername(username))
 		{
 			return new AuthResult(false, "Nombre de usuario inválido. Debe tener entre 3-20 caracteres alfanuméricos.");
@@ -191,8 +155,6 @@ public static class AuthService
 			GD.Print($"👋 Logout: {_currentUser.Username}");
 			_currentUser = null;
 		}
-	}
-
 	/// <summary>
 	/// Actualiza el puntaje del usuario actual
 	/// </summary>
@@ -200,6 +162,8 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		
+		if (!IsLoggedIn)l UpdateScore(uint newScore)
+	{
 		if (!IsLoggedIn)
 			return false;
 
@@ -216,10 +180,6 @@ public static class AuthService
 	/// Obtiene el puntaje máximo del usuario actual
 	/// </summary>
 	public static uint GetHighScore()
-	{
-		return IsLoggedIn ? _currentUser.HighScore : 0;
-	}
-
 	/// <summary>
 	/// Crea un nuevo usuario en la base de datos
 	/// </summary>
@@ -227,6 +187,10 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		
+		var passwordHash = PasswordService.HashPassword(password);
+	/// </summary>
+	private static AuthResult CreateNewUser(string username, string password)
+	{
 		var passwordHash = PasswordService.HashPassword(password);
 		var newUser = new User(username, passwordHash);
 
@@ -236,7 +200,38 @@ public static class AuthService
 		GD.Print($"🆕 Nuevo usuario creado: {username}");
 		return new AuthResult(true, "Usuario creado exitosamente", newUser);
 	}
-
+	/// <summary>
+	/// Inicializa AuthService con Inyección de Dependencias
+	/// Principio SOLID: DIP - Recibe dependencias en lugar de crearlas
+	/// </summary>
+	/// <param name="lockService">Servicio de bloqueo de usuarios (opcional)</param>
+	/// <param name="userDatabase">Servicio de base de datos de usuarios (opcional)</param>
+	public static void Initialize(IUserLockService lockService = null, IUserDatabaseService userDatabase = null)
+	{
+		// Usar dependencias inyectadas o crear las predeterminadas
+		_lockService = lockService ?? new UserLockService();
+		_userDatabase = userDatabase ?? new UserDatabaseService();
+		_isInitialized = true;
+		
+		GD.Print("🔧 AuthService inicializado con Inyección de Dependencias");
+		GD.Print($"📊 Total de usuarios en base de datos: {_userDatabase.GetAllUsernames().Count}");
+		
+		var allUsers = _userDatabase.GetAllUsernames();
+		if (allUsers.Contains("admin"))
+		{
+			GD.Print("✅ Usuario admin disponible");
+		}
+	}
+	
+	/// <summary>
+	/// Verifica que el servicio esté inicializado antes de usarlo
+	/// </summary>
+	private static void EnsureInitialized()
+	{
+		if (!_isInitialized)
+		{
+			// Auto-inicializar con dependencias predeterminadas si no se ha hecho
+			Initialize();
 	/// <summary>
 	/// Carga los datos de un usuario específico sin activar la sesión
 	/// </summary>
@@ -244,8 +239,9 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		return _userDatabase.GetUser(username);
-	}
-
+	}// </summary>
+	public static User LoadUserData(string username)
+	{
 	/// <summary>
 	/// Obtiene el servicio de bloqueos de usuarios
 	/// Principio SOLID: DIP (Dependency Inversion Principle)
@@ -254,8 +250,7 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		return _lockService;
-	}
-
+	}ublic static IUserLockService GetLockService()
 	/// <summary>
 	/// Desbloquea un usuario (solo con autenticación)
 	/// </summary>
@@ -263,15 +258,15 @@ public static class AuthService
 	{
 		EnsureInitialized();
 		
+		if (!IsLoggedIn) usuario (solo con autenticación)
+	/// </summary>
+	public static bool UnlockUser(string username)
+	{
 		if (!IsLoggedIn)
 		{
 			GD.Print("⚠️ Debe iniciar sesión para desbloquear usuarios");
 			return false;
 		}
-
-		_lockService.UnlockUser(username);
-		return true;
-	}
 
 	/// <summary>
 	/// Obtiene la lista de usuarios bloqueados
@@ -297,6 +292,10 @@ public static class AuthService
 	public static System.Collections.Generic.List<string> GetAllUsernames()
 	{
 		EnsureInitialized();
+		return _userDatabase.GetAllUsernames();
+	}// </summary>
+	public static System.Collections.Generic.List<string> GetAllUsernames()
+	{
 		return _userDatabase.GetAllUsernames();
 	}
 }

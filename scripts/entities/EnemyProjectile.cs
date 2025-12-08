@@ -7,17 +7,38 @@ public partial class EnemyProjectile : Area2D
 	
 	private Movement _movementComponent;
 	private VisibleOnScreenNotifier2D _visibilityNotifier;
+	private bool _isInitialized = false;
 	
 	public override void _Ready()
 	{
-		Initialize();
+		// Inicializar referencias y conectar señales solo una vez
+		if (!_isInitialized)
+		{
+			InitializeComponents();
+		}
 	}
 	
+	/// <summary>
+	/// Configura los parámetros del proyectil (velocidad y daño)
+	/// Este método puede llamarse múltiples veces de forma segura
+	/// </summary>
 	public void Initialize(float speed = 200.0f, int damage = 15)
 	{
 		Speed = speed;
 		Damage = damage;
 		
+		// Actualizar parámetros de movimiento si ya existe el componente
+		if (_movementComponent != null)
+		{
+			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
+		}
+	}
+	
+	/// <summary>
+	/// Inicializa componentes y conecta señales (se ejecuta solo una vez)
+	/// </summary>
+	private void InitializeComponents()
+	{
 		// Configurar componente de movimiento
 		_movementComponent = GetNode<Movement>("Movement");
 		if (_movementComponent != null)
@@ -39,6 +60,8 @@ public partial class EnemyProjectile : Area2D
 		
 		// Añadir al grupo de proyectiles enemigos
 		AddToGroup("enemy_projectiles");
+		
+		_isInitialized = true;
 	}
 	
 	public override void _PhysicsProcess(double delta)
