@@ -39,15 +39,6 @@ public partial class ShooterEnemy : Enemy
 		{
 			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
 		}
-		
-		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
-		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
-		if (_audioService == null)
-		{
-			_audioService = GetNode<AudioService>("/root/Game/SFX");
-		}
-
-		SetupShooting();
 	}
 
 	private void SetupShooting()
@@ -75,9 +66,25 @@ public partial class ShooterEnemy : Enemy
 		}
 	}
 
+	public override void _Ready()
+	{
+		base._Ready();
+		
+		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
+		// Esto debe hacerse en _Ready() cuando el nodo ya está en el árbol
+		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
+		if (_audioService == null)
+		{
+			_audioService = GetNodeOrNull<AudioService>("/root/Game/SFX");
+		}
+		
+		// Configurar el sistema de disparo después de estar en el árbol
+		SetupShooting();
+	}
+	
 	protected override void ConfigureMovementStrategy()
 	{
-		// Los shooter enemies usan movimiento lineal lento
+		// Los shooters usan movimiento lineal
 		_movementComponent?.SetMovementStrategy(new LinearMovementStrategy());
 	}
 

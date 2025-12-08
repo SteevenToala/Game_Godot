@@ -15,6 +15,8 @@ public partial class Enemy : BaseEntity, IDamageable
 
 	// HACER PÚBLICO EL COMPONENTE DE MOVIMIENTO PARA EL SISTEMA DE NIVELES
 	public Movement MovementComponent => _movementComponent;
+	
+	private bool _signalsConnected = false;
 
 	public override void Initialize()
 	{
@@ -31,7 +33,12 @@ public partial class Enemy : BaseEntity, IDamageable
 			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
 		}
 		
-		BodyEntered += OnBodyEntered;
+		// Conectar señales solo una vez
+		if (!_signalsConnected)
+		{
+			BodyEntered += OnBodyEntered;
+			_signalsConnected = true;
+		}
 	}
 
 	protected override void ConfigureMovementStrategy()

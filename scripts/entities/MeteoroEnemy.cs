@@ -28,12 +28,18 @@ public partial class MeteoroEnemy : Enemy
 		{
 			_movementComponent.SetMovementParameters(Speed, Vector2.Down);
 		}
+	}
+	
+	public override void _Ready()
+	{
+		base._Ready();
 		
 		// Inyectar AudioService desde AutoLoad o escena (nodo "SFX")
+		// Esto debe hacerse en _Ready() cuando el nodo ya está en el árbol
 		_audioService = GetNodeOrNull<AudioService>("/root/AudioService");
 		if (_audioService == null)
 		{
-			_audioService = GetNode<AudioService>("/root/Game/SFX");
+			_audioService = GetNodeOrNull<AudioService>("/root/Game/SFX");
 		}
 	}
 	

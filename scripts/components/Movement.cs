@@ -8,9 +8,19 @@ public partial class Movement : Node, IMovable
 	private IMovementStrategy _movementStrategy;
 	private Node2D _owner;
 	
+	public void Initialize()
+	{
+		// Inicializar el owner antes de cualquier otra operación
+		if (_owner == null)
+		{
+			_owner = GetParent<Node2D>();
+		}
+	}
+	
 	public override void _Ready()
 	{
-		_owner = GetParent<Node2D>();
+		// Asegurar que _owner esté inicializado
+		Initialize();
 		
 		// Estrategia por defecto
 		if (_movementStrategy == null)
@@ -26,6 +36,9 @@ public partial class Movement : Node, IMovable
 	
 	public void SetMovementStrategy(IMovementStrategy strategy)
 	{
+		// Asegurar que _owner esté inicializado antes de configurar la estrategia
+		Initialize();
+		
 		_movementStrategy = strategy;
 		_movementStrategy?.Initialize(_owner);
 	}
