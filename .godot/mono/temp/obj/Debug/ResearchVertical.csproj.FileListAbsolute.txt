@@ -153,3 +153,21 @@ C:\Users\adri0\OneDrive\Documentos\Proyecto Patrones\Game_Godot\.godot\mono\temp
 C:\Users\adri0\OneDrive\Documentos\Proyecto Patrones\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.pdb
 C:\Users\adri0\OneDrive\Documentos\Proyecto Patrones\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.genruntimeconfig.cache
 C:\Users\adri0\OneDrive\Documentos\Proyecto Patrones\Game_Godot\.godot\mono\temp\obj\Debug\ref\ResearchVertical.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\ResearchVertical.deps.json
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\ResearchVertical.runtimeconfig.json
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\ResearchVertical.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\ResearchVertical.pdb
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\GodotSharp.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\bin\Debug\GodotSharpEditor.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.AssemblyReference.cache
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfoInputs.cache
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.AssemblyInfo.cs
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.sourcelink.json
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\Research.CC68AF1C.Up2Date
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\refint\ResearchVertical.dll
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.pdb
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ResearchVertical.genruntimeconfig.cache
+C:\Users\User\source\repos\Game_Godot\.godot\mono\temp\obj\Debug\ref\ResearchVertical.dll

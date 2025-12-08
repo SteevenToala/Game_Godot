@@ -18,5 +18,7 @@ res://scripts/managers/SpawnManager.cs
 res://scripts/services/AudioService.cs
 res://scripts/managers/GameManager.cs
 res://scripts/entities/Laser.cs
-res://scripts/services/UserDatabaseService.cs
-res://scenes/game_over_screen.tscn
+res://scripts/managers/BackgroundManager.cs
+res://scripts/managers/NodeInitializer.cs
+res://scripts/managers/InputManager.cs
+res://scripts/managers/GameStateManager.cs
