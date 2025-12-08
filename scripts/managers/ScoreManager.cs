@@ -5,6 +5,7 @@ public partial class ScoreManager : Node, IInitializable
 	private uint _currentScore;
 	private uint _highScore;
 	private UserManager _userManager;
+	private bool _isInitialized = false;
 
 	[Signal] public delegate void ScoreChangedEventHandler(uint score);
 	[Signal] public delegate void HighScoreChangedEventHandler(uint highScore);
@@ -14,38 +15,39 @@ public partial class ScoreManager : Node, IInitializable
 
 	public override void _Ready()
 	{
-		Initialize();
+		// No inicializar aquí, esperar a que GameManager llame Initialize con UserManager
 	}
 
+	/// <summary>
+	/// Inicializa el ScoreManager con el UserManager inyectado
+	/// </summary>
 	public void Initialize()
 	{
-		// Buscar el UserManager - intentar múltiples rutas
-		_userManager = GetNodeOrNull<UserManager>("../UserManager");
+		Initialize(null);
+	}
+
+	/// <summary>
+	/// Inicializa el ScoreManager con el UserManager inyectado (DIP)
+	/// </summary>
+	public void Initialize(UserManager userManager)
+	{
+		if (_isInitialized) return;
 		
-		if (_userManager == null)
-		{
-			_userManager = GetNodeOrNull<UserManager>("/root/Game/UserManager");
-		}
-		
-		if (_userManager == null)
-		{
-			var gameManager = GetNodeOrNull<GameManager>("..");
-			if (gameManager != null)
-			{
-				_userManager = gameManager.GetNodeOrNull<UserManager>("UserManager");
-			}
-		}
+		_userManager = userManager;
+		_userManager = userManager;
 
 		if (_userManager != null)
 		{
 			_userManager.HighScoreUpdated += OnUserHighScoreUpdated;
+			GD.Print("✅ ScoreManager inicializado con UserManager.");
 		}
 		else
 		{
-			GD.PrintErr("⚠️ UserManager no encontrado en ScoreManager");
+			GD.Print("⚠️ ScoreManager inicializado sin UserManager (modo standalone).");
 		}
 
 		LoadHighScore();
+		_isInitialized = true;
 	}
 
 	public void AddScore(uint points)

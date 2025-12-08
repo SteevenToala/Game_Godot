@@ -43,6 +43,16 @@ public partial class GameManager : Node2D, IInitializable
 		// Obtener referencias a nodos a través del NodeInitializer
 		InitializeNodeReferences();
 		
+		// Inicializar ScoreManager con UserManager inyectado (DIP)
+		if (_scoreManager != null && _userManager != null)
+		{
+			_scoreManager.Initialize(_userManager);
+		}
+		else if (_scoreManager != null)
+		{
+			_scoreManager.Initialize(); // Modo standalone sin UserManager
+		}
+		
 		// Configurar conexiones y eventos
 		SetupConnections();
 		SetupPlayer();

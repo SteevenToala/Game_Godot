@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public partial class GameOverScreen : Control, IInitializable
@@ -10,6 +11,7 @@ public partial class GameOverScreen : Control, IInitializable
 	private Button _restartButton;
 	private Button _logoutButton;
 	private UserDatabaseService _userDatabase;
+	private bool _buttonsConnected = false; // Bandera para rastrear el estado de las conexiones
 
 	public override void _Ready()
 	{
@@ -57,11 +59,13 @@ public partial class GameOverScreen : Control, IInitializable
 		if (_restartButton != null)
 		{
 			_restartButton.Pressed += OnRestartButtonPressed;
+			_buttonsConnected = true;
 		}
 
 		if (_logoutButton != null)
 		{
 			_logoutButton.Pressed += OnLogoutButtonPressed;
+			_buttonsConnected = true;
 		}
 	}
 
@@ -139,12 +143,17 @@ public partial class GameOverScreen : Control, IInitializable
 
 	public void OnRestartButtonPressed()
 	{
+		GD.Print("🔄 Intentando reiniciar juego...");
+		
 		// Validar que el nodo esté en el árbol antes de usar GetTree()
 		if (!IsInsideTree())
 		{
-			GD.PrintErr("GameOverScreen no está en el árbol al intentar reiniciar");
+			GD.PrintErr("⚠️ GameOverScreen no está en el árbol al intentar reiniciar");
 			return;
 		}
+		
+		// Desconectar botones para evitar múltiples clicks
+		DisconnectButtons();
 		
 		// Obtener el GameManager desde la raíz
 		var root = GetTree().Root;
@@ -164,23 +173,74 @@ public partial class GameOverScreen : Control, IInitializable
 
 	private void OnLogoutButtonPressed()
 	{
-		// Validar que el nodo esté en el árbol antes de cualquier operación
-		if (!IsInsideTree())
-		{
-			GD.PrintErr("GameOverScreen no está en el árbol al intentar logout");
-			return;
-		}
+		GD.Print("🚪 Botón de logout presionado");
 		
-		// Guardar referencia al SceneTree antes de hacer logout
-		var sceneTree = GetTree();
+		// Desconectar botones inmediatamente para evitar múltiples clicks
+		DisconnectButtons();
+		
+		// Deshabilitar botones visualmente
+		if (_restartButton != null) _restartButton.Disabled = true;
+		if (_logoutButton != null) _logoutButton.Disabled = true;
+		
+		// Hacer logout y recargar en el siguiente frame
+		CallDeferred(MethodName.PerformLogout);
+	}
+	
+	/// <summary>
+	/// Realiza el logout y recarga la escena de forma segura
+	/// </summary>
+	private void PerformLogout()
+	{
+		GD.Print("🔄 Ejecutando logout...");
 		
 		// Cerrar sesión
 		AuthService.Logout();
-
-		// Volver a la pantalla de login (si el nodo aún existe)
-		if (IsInsideTree() && sceneTree != null)
+		
+		// Recargar escena si aún estamos en el árbol
+		if (IsInsideTree())
 		{
-			sceneTree.ReloadCurrentScene();
+			var sceneTree = GetTree();
+			if (sceneTree != null)
+			{
+				GD.Print("✅ Recargando escena tras logout");
+				sceneTree.ReloadCurrentScene();
+			}
+		}
+		else
+		{
+			GD.Print("⚠️ Nodo ya no está en el árbol, pero logout completado");
+		}
+	}
+	
+	/// <summary>
+	/// Desconecta los botones para evitar múltiples clicks
+	/// </summary>
+	private void DisconnectButtons()
+	{
+		// Solo intentar desconectar si están conectados
+		if (!_buttonsConnected) 
+		{
+			return;
+		}
+		
+		try
+		{
+			if (_restartButton != null)
+			{
+				_restartButton.Pressed -= OnRestartButtonPressed;
+			}
+			
+			if (_logoutButton != null)
+			{
+				_logoutButton.Pressed -= OnLogoutButtonPressed;
+			}
+			
+			_buttonsConnected = false;
+		}
+		catch (Exception ex)
+		{
+			// Ignorar errores de desconexión si ya estaban desconectados
+			GD.Print($"⚠️ Error al desconectar botones: {ex.Message}");
 		}
 	}
 }
