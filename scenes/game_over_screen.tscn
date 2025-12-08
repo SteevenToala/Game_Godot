@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cvkh38ne054ji"]
+[gd_scene load_steps=7 format=3 uid="uid://cvkh38ne054ji"]
 
 [ext_resource type="Script" uid="uid://d0bclm12yod4r" path="res://scripts/ui/GameOverScreen.cs" id="1_guag2"]
 [ext_resource type="Texture2D" uid="uid://qtbmtefwglcn" path="res://Backgrounds/BackgroundGame.png" id="2_61w2s"]
@@ -16,6 +16,9 @@ font_size = 50
 
 [sub_resource type="LabelSettings" id="LabelSettings_hynx3"]
 font_size = 32
+
+[sub_resource type="LabelSettings" id="LabelSettings_small"]
+font_size = 18
 
 [node name="GameOverScreen" type="Control"]
 layout_mode = 3
@@ -51,9 +54,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -179.0
-offset_top = -222.0
+offset_top = -280.0
 offset_right = 179.0
-offset_bottom = 222.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_61w2s")
@@ -78,10 +81,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -149.5
-offset_top = -126.0
-offset_right = 149.5
-offset_bottom = -62.0
+offset_left = -149.0
+offset_top = -180.0
+offset_right = 150.0
+offset_bottom = -116.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Hi-Score: 9999"
@@ -96,10 +99,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -149.5
-offset_top = -54.0
-offset_right = 149.5
-offset_bottom = 10.0
+offset_left = -150.0
+offset_top = -116.0
+offset_right = 149.0
+offset_bottom = -52.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Score: 9999"
@@ -114,16 +117,36 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -149.5
-offset_top = 22.0
-offset_right = 149.5
-offset_bottom = 60.0
+offset_left = -149.0
+offset_top = -52.0
+offset_right = 150.0
+offset_bottom = -7.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Usuario: ---"
 label_settings = SubResource("LabelSettings_hynx3")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TopScores" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 36.0
+offset_right = 149.0
+offset_bottom = 166.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "🏆 TOP 3:
+🥇 admin: 0
+🥈 user1: 0
+🥉 user2: 0"
+label_settings = SubResource("LabelSettings_small")
+horizontal_alignment = 1
 
 [node name="ButtonContainer" type="HBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -133,9 +156,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -160.0
-offset_top = 101.0
+offset_top = 210.0
 offset_right = 160.0
-offset_bottom = 170.0
+offset_bottom = 279.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10

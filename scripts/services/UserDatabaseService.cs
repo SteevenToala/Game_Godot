@@ -82,6 +82,18 @@ public class UserDatabaseService
 	}
 
 	/// <summary>
+	/// Obtiene los 3 mejores usuarios por high score
+	/// </summary>
+	public List<User> GetTopScores(int count = 3)
+	{
+		var sortedUsers = new List<User>(_users.Values);
+		sortedUsers.Sort((a, b) => b.HighScore.CompareTo(a.HighScore));
+		
+		// Retornar solo los primeros 'count' usuarios
+		return sortedUsers.Count > count ? sortedUsers.GetRange(0, count) : sortedUsers;
+	}
+
+	/// <summary>
 	/// Asegura que existe el usuario admin por defecto
 	/// </summary>
 	private void EnsureAdminExists()
