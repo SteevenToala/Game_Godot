@@ -1,5 +1,5 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1765172265
+::res://::1765172559
 GUIA_USUARIO_BLOQUEO.md::TextFile::-1::1765088178::0::1::::<><><>0<>0<><>::
 icon.svg::CompressedTexture2D/CompressedTexture2D::8773307466808949931::1764858514::1765162684::1::::<><><>0<>0<>a3b2ea630fd5950ba49cf7cef17e713e<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 README.md::TextFile::-1::1765088178::0::1::::<><><>0<>0<><>::
@@ -40,7 +40,7 @@ MoveUpCommand.cs::CSharpScript::2978053025283597409::1764858514::0::1::::<><><>0
 StopCommand.cs::CSharpScript::7793367836606082993::1764858514::0::1::::<><><>0<>0<><>::
 ::res://scripts/components/::1765169445
 Health.cs::CSharpScript::4618820336355480175::1764858514::0::1::::<>Node<><>0<>0<><>::
-Movement.cs::CSharpScript::5894035715212884715::1765171857::0::1::::<>Node<><>0<>0<><>::
+Movement.cs::CSharpScript::5894035715212884715::1765172544::0::1::::<>Node<><>0<>0<><>::
 PlayerInputHandler.cs::CSharpScript::8552969192780322379::1765169424::0::1::::<>Node<><>0<>0<><>::
 ::res://scripts/components/interfaces/::1764858514
 IDamageable.cs::CSharpScript::9017380853094790435::1764858514::0::1::::<><><>0<>0<><>::
@@ -56,7 +56,7 @@ EnemyProjectile.cs::CSharpScript::4630484377170035847::1765170413::0::1::::<>Are
 Laser.cs::CSharpScript::2076645304717281918::1764858514::0::1::::<>Area2D<><>0<>0<><>::
 MeteoroEnemy.cs::CSharpScript::7215967830444670726::1765172174::0::1::::<>Area2D<><>0<>0<><>::
 Player.cs::CSharpScript::4641840148642391676::1765169424::0::1::::<>CharacterBody2D<><>0<>0<><>::
-ShooterEnemy.cs::CSharpScript::3309151390547596590::1765172249::0::1::::<>Area2D<><>0<>0<><>::
+ShooterEnemy.cs::CSharpScript::3309151390547596590::1765172307::0::1::::<>Area2D<><>0<>0<><>::
 ::res://scripts/factories/::1765171602
 BasicEnemyFactory.cs::CSharpScript::1408562997752917638::1765171553::0::1::::<><><>0<>0<><>::
 EnemyFactory.cs::CSharpScript::7175057448309492944::1765171579::0::1::::<><><>0<>0<><>::

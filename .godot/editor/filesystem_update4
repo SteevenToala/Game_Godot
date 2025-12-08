@@ -1,4 +1,3 @@
-res://scripts/entities/ShooterEnemy.cs
 res://scripts/components/Movement.cs
 res://scripts/managers/InputManager.cs
 res://scripts/components/PlayerInputHandler.cs
@@ -11,6 +10,7 @@ res://scripts/utils/UserTestScript.cs
 res://scripts/managers/NodeInitializer.cs
 res://scripts/entities/EnemyProjectile.cs
 res://scripts/managers/GameStateManager.cs
+res://scripts/entities/ShooterEnemy.cs
 res://scripts/ui/Hud.cs
 res://scripts/commands/CommandInvoker.cs
 res://scripts/managers/SpawnManager.cs

@@ -54,15 +54,4 @@ public partial class Movement : Node, IMovable
 		Direction = direction;
 		_movementStrategy?.SetDirection(direction);
 	}
-	
-	// Métodos legacy para compatibilidad (DEPRECATED)
-	public void MoveBody(CharacterBody2D body, double delta)
-	{
-		_movementStrategy?.Move(body, delta, Speed, Direction);
-	}
-	
-	public void MoveArea(Area2D area, double delta)
-	{
-		_movementStrategy?.Move(area, delta, Speed, Direction);
-	}
 }
